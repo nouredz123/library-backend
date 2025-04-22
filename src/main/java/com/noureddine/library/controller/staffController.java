@@ -84,14 +84,14 @@ public class staffController {
         response.put("message", "Book copy added successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @PatchMapping("/pickup/{inventoryNumber}")
+    @PatchMapping("/confirmPickup/{inventoryNumber}")
     public ResponseEntity<Map<String, String>> confirmBookPickup(@PathVariable String inventoryNumber) throws NotFoundException {
         borrowingService.confirmBookPickup(inventoryNumber);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book picked up successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @PatchMapping("/return/{inventoryNumber}")
+    @PatchMapping("/confirmReturn/{inventoryNumber}")
     public ResponseEntity<Map<String, String>> confirmBookReturn(@PathVariable String inventoryNumber) throws NotFoundException {
         borrowingService.confirmBookReturn(inventoryNumber);
         Map<String, String> response = new HashMap<>();

@@ -17,6 +17,9 @@ public class Borrowing {
     private LocalDate pickUpDate;
     private LocalDate returnDate;
 
+    public Borrowing() {
+    }
+
     public Borrowing(String inventoryNumber, Long memberId, LocalDate pickUpDate, LocalDate returnDate) {
         this.inventoryNumber = inventoryNumber;
         this.memberId = memberId;

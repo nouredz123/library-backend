@@ -43,7 +43,8 @@ public class BookService {
                 bookRequest.getAuthor(),
                 bookRequest.getPublisher(),
                 bookRequest.getEditionYear(),
-                available
+                available,
+                bookRequest.getCoverUrl()
         );
         Book savedBook = bookRepository.save(book);
         if(bookRequest.getInventoryNumbers().isEmpty()){

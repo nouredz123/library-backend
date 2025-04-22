@@ -8,21 +8,36 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
-    private String Title;
-    private String Author;
-    private String Publisher;
-    private String EditionYear;
+    private String title;
+    private String author;
+    private String publisher;
+    private String editionYear;
     private Boolean available;
+    private String coverUrl;
 
-    public Book(String title, String author, String publisher, String editionYear, Boolean available) {
-        Title = title;
-        Author = author;
-        Publisher = publisher;
-        EditionYear = editionYear;
-        this.available = available;
-    }
 
     public Book() {
+    }
+
+    public Book(String title, String author, String publisher, String editionYear, Boolean available, String coverUrl) {
+        this.title = title;
+        this.author = author;
+        this.publisher = publisher;
+        this.editionYear = editionYear;
+        this.available = available;
+        this.coverUrl = coverUrl;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public Boolean getAvailable() {
+        return available;
     }
 
     public Boolean isAvailable() {
@@ -42,34 +57,34 @@ public class Book {
     }
 
     public String getTitle() {
-        return Title;
+        return title;
     }
 
     public void setTitle(String title) {
-        this.Title = title;
+        this.title = title;
     }
 
     public String getAuthor() {
-        return Author;
+        return author;
     }
 
     public void setAuthor(String author) {
-        Author = author;
+        this.author = author;
     }
 
     public String getPublisher() {
-        return Publisher;
+        return publisher;
     }
 
     public void setPublisher(String publisher) {
-        Publisher = publisher;
+        this.publisher = publisher;
     }
 
     public String getEditionYear() {
-        return EditionYear;
+        return editionYear;
     }
 
     public void setEditionYear(String editionYear) {
-        EditionYear = editionYear;
+        this.editionYear = editionYear;
     }
 }

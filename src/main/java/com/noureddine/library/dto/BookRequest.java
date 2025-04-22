@@ -8,6 +8,7 @@ public class BookRequest {
     private String Author;
     private String Publisher;
     private String EditionYear;
+    private String coverUrl;
     private List<String> inventoryNumbers;
 
     public String getTitle() {
@@ -40,6 +41,14 @@ public class BookRequest {
 
     public void setEditionYear(String editionYear) {
         EditionYear = editionYear;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public List<String> getInventoryNumbers() {

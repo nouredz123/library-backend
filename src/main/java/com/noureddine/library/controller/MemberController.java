@@ -8,6 +8,9 @@ import com.noureddine.library.service.BookService;
 import com.noureddine.library.service.BorrowingService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,16 +29,18 @@ public class MemberController {
         this.bookService = bookService;
         this.borrowingService = borrowingService;
     }
-
     @GetMapping("/books")
-    public Page<Book> getBooks(
+    public PagedModel<EntityModel<Book>> getBooks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
+            @RequestParam(defaultValue = "asc") String direction,
+            PagedResourcesAssembler<Book> assembler
     ) throws NotFoundException {
-        return bookService.getBooks(page, size, sortBy, direction);
+        Page<Book> books = bookService.getBooks(page, size, sortBy, direction);
+        return assembler.toModel(books);
     }
+
     @GetMapping("/{memberId}/borrowings")
     public List<Borrowing> getBorrowings(@PathVariable Long memberId) throws NotFoundException, BadRequestException {
         if (memberId == null) {
@@ -43,6 +48,15 @@ public class MemberController {
         }
         return borrowingService.getBorrowingsByMemberId(memberId);
     }
+
+    @PostMapping("/borrow")
+    public ResponseEntity<Map<String, String>> addBorrowing(@RequestBody BorrowRequest request) throws NotFoundException {
+        borrowingService.borrow(request);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Borrowing done Successfully");
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
     @DeleteMapping("/borrowings/{borrowingId}")
     public ResponseEntity<Map<String, String>> cancelBorrowing(@PathVariable Long borrowingId) throws NotFoundException {
         borrowingService.removeBorrowingById(borrowingId);
@@ -57,11 +71,5 @@ public class MemberController {
         response.put("message", "Borrowing cancelled successfully");
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/borrow")
-    public ResponseEntity<Map<String, String>> addBorrowing(@RequestBody BorrowRequest request) throws NotFoundException {
-        borrowingService.borrow(request);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Borrowing done Successfully");
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
+
 }
