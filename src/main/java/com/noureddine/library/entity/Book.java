@@ -14,18 +14,20 @@ public class Book {
     private String editionYear;
     private Boolean available;
     private String coverUrl;
+    private String department;
 
 
     public Book() {
     }
 
-    public Book(String title, String author, String publisher, String editionYear, Boolean available, String coverUrl) {
+    public Book(String title, String author, String publisher, String editionYear, Boolean available, String coverUrl, String department) {
         this.title = title;
         this.author = author;
         this.publisher = publisher;
         this.editionYear = editionYear;
         this.available = available;
         this.coverUrl = coverUrl;
+        this.department = department;
     }
 
     public String getCoverUrl() {
@@ -86,5 +88,13 @@ public class Book {
 
     public void setEditionYear(String editionYear) {
         this.editionYear = editionYear;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 }

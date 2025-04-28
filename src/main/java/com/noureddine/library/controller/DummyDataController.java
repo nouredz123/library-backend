@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/dev")
@@ -30,21 +31,48 @@ public class DummyDataController {
 
     @GetMapping("/seed")
     public ResponseEntity<String> seedDatabase() {
-        // Create dummy books
-        Book book1 = new Book( "Effective Java", "Joshua Bloch", "Addison-Wesley", "2018", true, "https://example.com/java.jpg");
-        Book book2 = new Book( "Clean Code", "Robert C. Martin", "Prentice Hall", "2008", true, "https://example.com/clean.jpg");
-        bookRepository.saveAll(List.of(book1, book2));
+        List<Book> books = new ArrayList<>();
+        List<BookCopy> bookCopies = new ArrayList<>();
+        List<Borrowing> borrowings = new ArrayList<>();
+        String[] departments = {"Computer Science", "Mathematics", "Chemistry", "Physics"};
+        Random random = new Random();
 
-        // Create dummy book copies
-        BookCopy copy1 = new BookCopy("INV001", book1.getId(), true);
-        BookCopy copy2 = new BookCopy("INV002", book1.getId(), false);
-        BookCopy copy3 = new BookCopy("INV003", book2.getId(), true);
-        bookCopyRepository.saveAll(List.of(copy1, copy2, copy3));
+        // Create and save 10 books
+        for (int i = 1; i <= 10; i++) {
+            Book book = new Book(
+                    "Book Title " + i,
+                    "Author " + i,
+                    "Publisher " + i,
+                    "20" + (10 + i),
+                    true,
+                    "https://example.com/book" + i + ".jpg",
+                    departments[random.nextInt(departments.length)]
+            );
+            books.add(book);
+        }
+        bookRepository.saveAll(books);
 
-        // Create dummy borrowings
-        Borrowing borrowing1 = new Borrowing("INV002", 1001L, LocalDate.of(2024, 4, 1), LocalDate.of(2024, 4, 10));
-        borrowingRepository.save(borrowing1);
+        // Add 3 copies per book: 2 available, 1 unavailable
+        int inventoryIndex = 1;
+        for (Book book : books) {
+            for (int j = 1; j <= 3; j++) {
+                boolean isAvailable = (j != 2); // Make 2nd copy unavailable
+                BookCopy copy = new BookCopy(
+                        "INV" + String.format("%03d", inventoryIndex++),
+                        book,
+                        isAvailable
+                );
+                bookCopies.add(copy);
+            }
+        }
+        bookCopyRepository.saveAll(bookCopies);
+
+        // Create sample borrowings (match unavailable copies)
+
+        borrowingRepository.saveAll(borrowings);
 
         return ResponseEntity.ok("Database seeded with dummy data!");
     }
+
+
 }

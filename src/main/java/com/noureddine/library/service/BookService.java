@@ -1,5 +1,6 @@
 package com.noureddine.library.service;
 
+import com.noureddine.library.dto.PageResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.dto.BookRequest;
@@ -24,17 +25,32 @@ public class BookService {
         this.bookCopyRepository = bookCopyRepository;
     }
 
-    public Page<Book> getBooks(int page, int size, String sortBy, String direction) throws NotFoundException {
+    public Page<Book> getBooks(String department, int page, int size, String sortBy, String direction) throws NotFoundException {
         Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Book> booksPage = bookRepository.findAll(pageable);
+        Page<Book> booksPage;
+
+        if (department != null && !department.isEmpty()) {
+            booksPage = bookRepository.findByDepartment(department, pageable);
+        } else {
+            booksPage = bookRepository.findAll(pageable);
+        }
 
         if (booksPage.isEmpty()) {
             throw new NotFoundException("No books found in the database");
         }
 
         return booksPage;
+        //List<Book> content = booksPage.getContent();
+        //return new PageResponse<>(
+          //      content,
+            //    booksPage.getNumber(),
+              //  booksPage.getSize(),
+                //booksPage.getTotalElements(),
+                //booksPage.getTotalPages(),
+                //booksPage.isLast()
+        //);
     }
     public void addBook(BookRequest bookRequest) throws NotFoundException {
         boolean available = !bookRequest.getInventoryNumbers().isEmpty();
@@ -44,7 +60,8 @@ public class BookService {
                 bookRequest.getPublisher(),
                 bookRequest.getEditionYear(),
                 available,
-                bookRequest.getCoverUrl()
+                bookRequest.getCoverUrl(),
+                bookRequest.getDepartment()
         );
         Book savedBook = bookRepository.save(book);
         if(bookRequest.getInventoryNumbers().isEmpty()){
@@ -54,7 +71,7 @@ public class BookService {
         List<BookCopy> existingCopies  = bookCopyRepository.findAllById(bookRequest.getInventoryNumbers());
         if(!existingCopies.isEmpty()){
             for(BookCopy existingCopy : existingCopies){
-                if(!existingCopy.getBookId().equals(savedBook.getId())){
+                if(!existingCopy.getBook().getId().equals(savedBook.getId())){
                     throw new NotFoundException("The book copy '" + existingCopy.getInventoryNumber() + "' already exists for another book");
                 }
             }
@@ -63,7 +80,7 @@ public class BookService {
         for(String inventoryNumber : bookRequest.getInventoryNumbers()){
             BookCopy copy = new BookCopy(
                     inventoryNumber,
-                    savedBook.getId(),
+                    savedBook,
                     true
             );
             bookCopyRepository.save(copy);

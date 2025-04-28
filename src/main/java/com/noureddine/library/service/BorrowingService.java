@@ -4,10 +4,12 @@ import com.noureddine.library.dto.BorrowRequest;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.entity.Borrowing;
+import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.repository.BookCopyRepository;
 import com.noureddine.library.repository.BookRepository;
 import com.noureddine.library.repository.BorrowingRepository;
+import com.noureddine.library.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,11 +21,13 @@ public class BorrowingService {
     private final BorrowingRepository borrowingRepository;
     private final BookCopyRepository bookCopyRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
 
-    public BorrowingService(BorrowingRepository borrowingRepository, BookCopyRepository bookCopyRepository, BookRepository bookRepository) {
+    public BorrowingService(BorrowingRepository borrowingRepository, BookCopyRepository bookCopyRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.borrowingRepository = borrowingRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
     }
 
     public List<Borrowing> getAll() throws NotFoundException {
@@ -36,15 +40,23 @@ public class BorrowingService {
     public void borrow(BorrowRequest request) throws NotFoundException {
         Book book = bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new NotFoundException("The book not found"));
-        //BookCopy availableCopy = bookCopyRepository.findFirstByBookIdAndAvailableTrue(book.getId())
-          //      .orElseThrow(() -> new NotFoundException("No available copy of this book"));
+        User member = userRepository.findById(request.getMemberId())
+                .orElseThrow(() -> new NotFoundException("There is no user with the provided id"));
         //choose which copy to borrow and save the borrowing
         List<BookCopy> copies = bookCopyRepository.findByBookId(book.getId());
+        if(copies.isEmpty()){
+            throw new NotFoundException("There is no copies for this book");
+        }
+        for(int i = copies.size() - 1; i >= 0; i--){
+            if(borrowingRepository.existsByBookCopyAndMember(copies.get(i), member)){
+                throw new NotFoundException("book already borrowed by this user");
+            }
+        }
         for(int i = copies.size() - 1; i >= 0; i--){
             if(copies.get(i).isAvailable()){
                 Borrowing borrowing = new Borrowing(
-                        copies.get(i).getInventoryNumber(),
-                        request.getMemberId(),
+                        copies.get(i),
+                        member,
                         request.getPickupDate(),
                         request.getReturnDate()
                 );
@@ -70,7 +82,7 @@ public class BorrowingService {
         borrowingRepository.deleteById(borrowingId);
         Borrowing borrowing = borrowingOptional.get();
 
-        Optional<BookCopy> bookCopyOptional = bookCopyRepository.findById(borrowing.getInventoryNumber());
+        Optional<BookCopy> bookCopyOptional = bookCopyRepository.findById(borrowing.getBookCopy().getInventoryNumber());
         if(bookCopyOptional.isEmpty()){
             throw new NotFoundException("The book copy not found");
         }
@@ -78,100 +90,75 @@ public class BorrowingService {
         bookCopy.setAvailable(true);
         bookCopyRepository.save(bookCopy);
 
-        Optional<Book> bookOptional = bookRepository.findById(bookCopy.getBookId());
-        if(bookOptional.isEmpty()){
-            throw new NotFoundException("Book not found");
-        }
-        Book book = bookOptional.get();
+
+        Book book = bookCopy.getBook();
         if(book.isAvailable()){
             book.setAvailable(true);
             bookRepository.save(book);
         }
     }
     public void removeBorrowingByInventoryNumber(String inventoryNumber) throws NotFoundException {
-        Optional<Borrowing> borrowingOptional = borrowingRepository.findByInventoryNumber(inventoryNumber);
+        BookCopy bookCopy = bookCopyRepository.findById(inventoryNumber).orElseThrow(()-> new NotFoundException("Book copy not found"));
+        Optional<Borrowing> borrowingOptional = borrowingRepository.findByBookCopy(bookCopy);
         if(borrowingOptional.isEmpty()){
             throw new NotFoundException("The borrowing not found");
         }
-        borrowingRepository.deleteByInventoryNumber(inventoryNumber);
+        borrowingRepository.deleteByBookCopy(bookCopy);
         Borrowing borrowing = borrowingOptional.get();
-        Optional<BookCopy> bookCopyOptional = bookCopyRepository.findById(borrowing.getInventoryNumber());
-        if(bookCopyOptional.isEmpty()){
-            throw new NotFoundException("The book copy not found");
-        }
-        BookCopy bookCopy = bookCopyOptional.get();
         bookCopy.setAvailable(true);
         bookCopyRepository.save(bookCopy);
 
-        Optional<Book> bookOptional = bookRepository.findById(bookCopy.getBookId());
-        if(bookOptional.isEmpty()){
-            throw new NotFoundException("Book not found");
-        }
-        Book book = bookOptional.get();
+        Book book = bookCopy.getBook();
         if(book.isAvailable()){
             book.setAvailable(true);
             bookRepository.save(book);
         }
     }
     public Borrowing getBorrowingByInvNumber(String inventoryNumber) throws NotFoundException {
-        Optional<Borrowing> borrowing = borrowingRepository.findByInventoryNumber(inventoryNumber);
+        BookCopy bookCopy = bookCopyRepository.findById(inventoryNumber).orElseThrow(()-> new NotFoundException("Book copy not found"));
+        Optional<Borrowing> borrowing = borrowingRepository.findByBookCopy(bookCopy);
         if(borrowing.isEmpty()){
             throw new NotFoundException("The borrowing not found");
         }
         return  borrowing.get();
     }
     public List<Borrowing> getBorrowingsByMemberId(Long memberId) throws NotFoundException {
-        List<Borrowing> borrowings = borrowingRepository.findByMemberId(memberId);
+        User member = userRepository.findById(memberId).orElseThrow(()-> new NotFoundException("Member not found"));
+        List<Borrowing> borrowings = borrowingRepository.findByMember(member);
         if(borrowings.isEmpty()){
             throw new NotFoundException("There are no borrowings for this member");
         }
         return borrowings;
     }
     public void confirmBookPickup(String inventoryNumber) throws NotFoundException {
-        Optional<Borrowing> borrowingOptional = borrowingRepository.findByInventoryNumber(inventoryNumber);
+        BookCopy bookCopy = bookCopyRepository.findById(inventoryNumber).orElseThrow(()-> new NotFoundException("Book copy not found"));
+        Optional<Borrowing> borrowingOptional = borrowingRepository.findByBookCopy(bookCopy);
         if(borrowingOptional.isEmpty()){
             throw new NotFoundException("The borrowing not found");
         }
-        Optional<BookCopy> bookCopyOptional = bookCopyRepository.findById(inventoryNumber);
-        if(bookCopyOptional.isEmpty()){
-            throw new NotFoundException("The book copy not found");
-        }
-        BookCopy bookCopy = bookCopyOptional.get();
         bookCopy.setAvailable(false);
         bookCopyRepository.save(bookCopy);
         Borrowing borrowing = borrowingOptional.get();
         borrowing.setPickUpDate(LocalDate.now());
         borrowingRepository.save(borrowing);
-        Optional<Book> bookOptional = bookRepository.findById(bookCopy.getBookId());
-        if(bookOptional.isEmpty()){
-            throw new NotFoundException("Book bot found");
-        }
-        Book book = bookOptional.get();
+        Book book = bookCopy.getBook();
         if(book.isAvailable()){
             book.setAvailable(false);
             bookRepository.save(book);
         }
     }
     public void confirmBookReturn(String inventoryNumber) throws NotFoundException {
-        Optional<Borrowing> borrowingOptional = borrowingRepository.findByInventoryNumber(inventoryNumber);
+        BookCopy bookCopy = bookCopyRepository.findById(inventoryNumber).orElseThrow(()-> new NotFoundException("Book copy not found"));
+        Optional<Borrowing> borrowingOptional = borrowingRepository.findByBookCopy(bookCopy);
         if (borrowingOptional.isEmpty()) {
             throw new NotFoundException("The borrowing not found");
         }
-        Optional<BookCopy> bookCopyOptional = bookCopyRepository.findById(inventoryNumber);
-        if (bookCopyOptional.isEmpty()) {
-            throw new NotFoundException("The book copy not found");
-        }
-        BookCopy bookCopy = bookCopyOptional.get();
         bookCopy.setAvailable(true);
         bookCopyRepository.save(bookCopy);
         Borrowing borrowing = borrowingOptional.get();
         borrowing.setReturnDate(LocalDate.now());
         borrowingRepository.save(borrowing);
-        Optional<Book> bookOptional = bookRepository.findById(bookCopy.getBookId());
-        if(bookOptional.isEmpty()){
-            throw new NotFoundException("Book bot found");
-        }
-        Book book = bookOptional.get();
+        Book book = bookCopy.getBook();
         if(book.isAvailable()){
             book.setAvailable(true);
             bookRepository.save(book);

@@ -9,6 +9,7 @@ public class BookRequest {
     private String Publisher;
     private String EditionYear;
     private String coverUrl;
+    private String department;
     private List<String> inventoryNumbers;
 
     public String getTitle() {
@@ -57,5 +58,13 @@ public class BookRequest {
 
     public void setInventoryNumbers(List<String> inventoryNumbers) {
         this.inventoryNumbers = inventoryNumbers;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 }

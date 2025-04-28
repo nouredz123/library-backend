@@ -31,36 +31,45 @@ public class BookCopyService {
         if(copies.isEmpty()){
             throw new NotFoundException("No books found on the database");
         }
-        Map<Long, List<String>> groupedInventory = new HashMap<>();
+        Map<Book, List<String>> groupedInventory = new HashMap<>();
         for (BookCopy copy : copies) {
             groupedInventory
-                    .computeIfAbsent(copy.getBookId(), k -> new ArrayList<>())
+                    .computeIfAbsent(copy.getBook(), k -> new ArrayList<>())
                     .add(copy.getInventoryNumber());
         }
         List<CopiesResponse> responses = new ArrayList<>();
-        for (Map.Entry<Long, List<String>> entry : groupedInventory.entrySet()) {
-            Optional<Book> bookOpt = bookRepository.findById(entry.getKey());
-            bookOpt.ifPresent(book -> responses.add(new CopiesResponse(book, entry.getValue())));
+        for (Map.Entry<Book, List<String>> entry : groupedInventory.entrySet()) {
+            responses.add(new CopiesResponse(entry.getKey(), entry.getValue()));
         }
         return responses;
     }
     public void addBookCopy(BookCopy copyRequest) throws NotFoundException {
         copyRequest.setAvailable(true);
+        // Check if the inventory number already exists
         Optional<BookCopy> copyOptional  = bookCopyRepository.findById(copyRequest.getInventoryNumber());
         if(copyOptional.isPresent()){
-                if(!copyOptional.get().getBookId().equals(copyRequest.getBookId())){
-                    throw new NotFoundException("The book copy '" + copyRequest.getInventoryNumber() + "' already exists for another book");
-                }
-        }
-        bookCopyRepository.save(copyRequest);
-        Optional<Book> bookOptional = bookRepository.findById(copyRequest.getBookId());
-        bookOptional.ifPresent(book -> {
-            Boolean available = book.isAvailable();
-            if(available == null || !available){
-                book.setAvailable(true);
-                bookRepository.save(book);
+                Book existingBook = copyOptional.get().getBook();
+                //if they not for the same book
+            if (!existingBook.getId().equals(copyRequest.getBook().getId())) {
+                throw new NotFoundException("The book copy '" + copyRequest.getInventoryNumber() + "' already exists for another book");
             }
-        });
+        }
+        // Ensure the book exists in the database
+        Long bookId = copyRequest.getBook().getId();
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new NotFoundException("Book with id " + bookId + " not found"));
+
+        // Set the managed book reference in the copy to avoid transient entity issues
+        copyRequest.setBook(book);
+
+        // Save the copy
+        bookCopyRepository.save(copyRequest);
+
+        // If the book is currently marked unavailable, mark it available
+        if (!Boolean.TRUE.equals(book.isAvailable())) {
+            book.setAvailable(true);
+            bookRepository.save(book);
+        }
     }
     public void removeBookCopy(String inventoryNumber) throws NotFoundException {
         if(!bookCopyRepository.existsById(inventoryNumber)){

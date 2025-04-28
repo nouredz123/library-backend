@@ -1,4 +1,4 @@
-package com.noureddine.library.config;
+package com.noureddine.library;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

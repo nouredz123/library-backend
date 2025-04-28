@@ -1,6 +1,8 @@
 package com.noureddine.library.controller;
 
 import com.noureddine.library.dto.CopiesResponse;
+import com.noureddine.library.dto.InsightsResponse;
+import com.noureddine.library.dto.PageResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.dto.BookRequest;
@@ -9,7 +11,11 @@ import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.service.BookCopyService;
 import com.noureddine.library.service.BookService;
 import com.noureddine.library.service.BorrowingService;
+import com.noureddine.library.service.ReportsService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,19 +30,30 @@ public class staffController {
     private final BookService bookService;
     private final BorrowingService borrowingService;
     private final BookCopyService bookCopyService;
+    private final ReportsService reportsService;
 
-    public staffController(BookService bookService, BorrowingService borrowingService, BookCopyService bookCopyService) {
+    public staffController(BookService bookService, BorrowingService borrowingService, BookCopyService bookCopyService, ReportsService reportsService) {
         this.bookService = bookService;
         this.borrowingService = borrowingService;
         this.bookCopyService = bookCopyService;
+        this.reportsService = reportsService;
     }
-    public Page<Book> getBooks(
+    @GetMapping("/insights")
+    public ResponseEntity<InsightsResponse> getInsights(){
+        InsightsResponse response = reportsService.getInsights();
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/books")
+    public PagedModel<EntityModel<Book>> getBooks(
+            @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
+            @RequestParam(defaultValue = "asc") String direction,
+            PagedResourcesAssembler<Book> assembler
     ) throws NotFoundException {
-        return bookService.getBooks(page, size, sortBy, direction);
+        Page<Book> books = bookService.getBooks(department, page, size, sortBy, direction);
+        return assembler.toModel(books);
     }
     @GetMapping("/bookCopies")
     public List<CopiesResponse> getBookCopies() throws NotFoundException {

@@ -3,9 +3,11 @@ package com.noureddine.library.controller;
 import com.noureddine.library.dto.BorrowRequest;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.Borrowing;
+import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.service.BookService;
 import com.noureddine.library.service.BorrowingService;
+import com.noureddine.library.service.UserService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -24,21 +26,30 @@ import java.util.Map;
 public class MemberController {
     private final BookService bookService;
     private final BorrowingService borrowingService;
+    private final UserService userService;
 
-    public MemberController(BookService bookService, BorrowingService borrowingService) {
+    public MemberController(BookService bookService, BorrowingService borrowingService, UserService userService) {
         this.bookService = bookService;
         this.borrowingService = borrowingService;
+        this.userService = userService;
     }
     @GetMapping("/books")
     public PagedModel<EntityModel<Book>> getBooks(
+            @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction,
             PagedResourcesAssembler<Book> assembler
     ) throws NotFoundException {
-        Page<Book> books = bookService.getBooks(page, size, sortBy, direction);
+        Page<Book> books = bookService.getBooks(department, page, size, sortBy, direction);
         return assembler.toModel(books);
+    }
+    @GetMapping("/{memberId}/info")
+    public ResponseEntity<User> getInfo(@PathVariable Long memberId) throws NotFoundException {
+        User user = userService.getInfo(memberId);
+        return ResponseEntity.ok(user);
+
     }
 
     @GetMapping("/{memberId}/borrowings")

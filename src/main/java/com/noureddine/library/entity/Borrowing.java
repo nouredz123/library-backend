@@ -12,17 +12,21 @@ public class Borrowing {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String inventoryNumber;
-    private Long memberId;
+    @OneToOne
+    @JoinColumn(name = "inventory_number", nullable = false)
+    private BookCopy bookCopy;
+    @ManyToOne
+    @JoinColumn(name = "member_id", nullable = false)
+    private User member;
     private LocalDate pickUpDate;
     private LocalDate returnDate;
 
     public Borrowing() {
     }
 
-    public Borrowing(String inventoryNumber, Long memberId, LocalDate pickUpDate, LocalDate returnDate) {
-        this.inventoryNumber = inventoryNumber;
-        this.memberId = memberId;
+    public Borrowing(BookCopy bookCopy, User member, LocalDate pickUpDate, LocalDate returnDate) {
+        this.bookCopy = bookCopy;
+        this.member = member;
         this.pickUpDate = pickUpDate;
         this.returnDate = returnDate;
     }
@@ -43,20 +47,20 @@ public class Borrowing {
         this.pickUpDate = pickUpDate;
     }
 
-    public Long getMemberId() {
-        return memberId;
+    public User getMember() {
+        return member;
     }
 
-    public void setMemberId(Long memberId) {
-        this.memberId = memberId;
+    public void setMember(User member) {
+        this.member = member;
     }
 
-    public String getInventoryNumber() {
-        return inventoryNumber;
+    public BookCopy getBookCopy() {
+        return bookCopy;
     }
 
-    public void setInventoryNumber(String inventoryNumber) {
-        this.inventoryNumber = inventoryNumber;
+    public void setBookCopy(BookCopy bookCopy) {
+        this.bookCopy = bookCopy;
     }
 
     public Long getId() {

@@ -1,20 +1,20 @@
 package com.noureddine.library.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "bookCopy")
 public class BookCopy {
     @Id
     private String inventoryNumber;
-    private Long bookId;
+    @ManyToOne
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
     private boolean available;
 
-    public BookCopy(String inventoryNumber, Long bookId, boolean available) {
+    public BookCopy(String inventoryNumber, Book book, boolean available) {
         this.inventoryNumber = inventoryNumber;
-        this.bookId = bookId;
+        this.book = book;
         this.available = available;
     }
 
@@ -29,12 +29,12 @@ public class BookCopy {
         this.inventoryNumber = inventoryNumber;
     }
 
-    public Long getBookId() {
-        return bookId;
+    public Book getBook() {
+        return book;
     }
 
-    public void setBookId(Long bookId) {
-        this.bookId = bookId;
+    public void setBook(Book book) {
+        this.book = book;
     }
 
     public boolean isAvailable() {
