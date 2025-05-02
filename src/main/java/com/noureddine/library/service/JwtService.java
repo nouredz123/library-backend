@@ -11,7 +11,6 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-    // This secret MUST be at least 32 characters for HS256
     private final String SECRET = "a-string-secret-at-least-256-bits-long-for-real";
     private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 

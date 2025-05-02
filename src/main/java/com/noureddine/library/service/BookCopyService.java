@@ -44,7 +44,6 @@ public class BookCopyService {
         return responses;
     }
     public void addBookCopy(BookCopy copyRequest) throws NotFoundException {
-        copyRequest.setAvailable(true);
         // Check if the inventory number already exists
         Optional<BookCopy> copyOptional  = bookCopyRepository.findById(copyRequest.getInventoryNumber());
         if(copyOptional.isPresent()){
@@ -59,14 +58,13 @@ public class BookCopyService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new NotFoundException("Book with id " + bookId + " not found"));
 
-        // Set the managed book reference in the copy to avoid transient entity issues
-        copyRequest.setBook(book);
+        BookCopy bookCopy = new BookCopy(copyRequest.getInventoryNumber(), book, true, copyRequest.getStatus());
 
         // Save the copy
         bookCopyRepository.save(copyRequest);
 
         // If the book is currently marked unavailable, mark it available
-        if (!Boolean.TRUE.equals(book.isAvailable())) {
+        if (!book.isAvailable()) {
             book.setAvailable(true);
             bookRepository.save(book);
         }

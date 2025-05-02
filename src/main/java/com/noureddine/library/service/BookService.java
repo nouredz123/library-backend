@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -59,9 +60,12 @@ public class BookService {
                 bookRequest.getAuthor(),
                 bookRequest.getPublisher(),
                 bookRequest.getEditionYear(),
+                bookRequest.getIsbn(),
+                bookRequest.getNumberOfCopies(),
                 available,
                 bookRequest.getCoverUrl(),
-                bookRequest.getDepartment()
+                bookRequest.getDepartment(),
+                LocalDate.now()
         );
         Book savedBook = bookRepository.save(book);
         if(bookRequest.getInventoryNumbers().isEmpty()){
@@ -81,7 +85,8 @@ public class BookService {
             BookCopy copy = new BookCopy(
                     inventoryNumber,
                     savedBook,
-                    true
+                    true,
+                    "AVAILABLE"
             );
             bookCopyRepository.save(copy);
         }

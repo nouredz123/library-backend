@@ -2,6 +2,8 @@ package com.noureddine.library.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "book")
 public class Book {
@@ -12,22 +14,28 @@ public class Book {
     private String author;
     private String publisher;
     private String editionYear;
+    private String isbn;
+    private int numberOfCopies;
     private Boolean available;
     private String coverUrl;
     private String department;
+    private LocalDate addedDate;
 
 
     public Book() {
     }
 
-    public Book(String title, String author, String publisher, String editionYear, Boolean available, String coverUrl, String department) {
+    public Book(String title, String author, String publisher, String editionYear, String isbn, int numberOfCopies, Boolean available, String coverUrl, String department, LocalDate addedDate) {
         this.title = title;
         this.author = author;
         this.publisher = publisher;
         this.editionYear = editionYear;
+        this.isbn = isbn;
+        this.numberOfCopies = numberOfCopies;
         this.available = available;
         this.coverUrl = coverUrl;
         this.department = department;
+        this.addedDate = addedDate;
     }
 
     public String getCoverUrl() {
@@ -96,5 +104,29 @@ public class Book {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public LocalDate getAddedDate() {
+        return addedDate;
+    }
+
+    public void setAddedDate(LocalDate addedDate) {
+        this.addedDate = addedDate;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    public int getNumberOfCopies() {
+        return numberOfCopies;
+    }
+
+    public void setNumberOfCopies(int numberOfCopies) {
+        this.numberOfCopies = numberOfCopies;
     }
 }

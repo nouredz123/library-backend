@@ -2,16 +2,13 @@ package com.noureddine.library.controller;
 
 import com.noureddine.library.dto.CopiesResponse;
 import com.noureddine.library.dto.InsightsResponse;
-import com.noureddine.library.dto.PageResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.dto.BookRequest;
 import com.noureddine.library.entity.Borrowing;
+import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.NotFoundException;
-import com.noureddine.library.service.BookCopyService;
-import com.noureddine.library.service.BookService;
-import com.noureddine.library.service.BorrowingService;
-import com.noureddine.library.service.ReportsService;
+import com.noureddine.library.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -31,17 +28,31 @@ public class staffController {
     private final BorrowingService borrowingService;
     private final BookCopyService bookCopyService;
     private final ReportsService reportsService;
+    private final UserService userService;
 
-    public staffController(BookService bookService, BorrowingService borrowingService, BookCopyService bookCopyService, ReportsService reportsService) {
+    public staffController(BookService bookService, BorrowingService borrowingService, BookCopyService bookCopyService, ReportsService reportsService, UserService userService) {
         this.bookService = bookService;
         this.borrowingService = borrowingService;
         this.bookCopyService = bookCopyService;
         this.reportsService = reportsService;
+        this.userService = userService;
     }
     @GetMapping("/insights")
     public ResponseEntity<InsightsResponse> getInsights(){
         InsightsResponse response = reportsService.getInsights();
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/users")
+    public PagedModel<EntityModel<User>> getUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            PagedResourcesAssembler<User> assembler
+    ) throws NotFoundException {
+        Page<User> users = userService.getUsers( role, page, size, sortBy, direction);
+        return assembler.toModel(users);
     }
     @GetMapping("/books")
     public PagedModel<EntityModel<Book>> getBooks(
@@ -87,14 +98,14 @@ public class staffController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/book/{id}")
+    @DeleteMapping("/deleteBook/{id}")
     public ResponseEntity<Map<String, String>> removeBook(@PathVariable Long id) throws NotFoundException {
         bookService.removeBook(id);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @DeleteMapping("/bookCopy/{inventoryNumber}")
+    @DeleteMapping("/deleteBookCopy/{inventoryNumber}")
     public ResponseEntity<Map<String, String>> removeBookCopy(@PathVariable String inventoryNumber) throws NotFoundException {
         bookCopyService.removeBookCopy(inventoryNumber);
         Map<String, String> response = new HashMap<>();
@@ -113,6 +124,13 @@ public class staffController {
         borrowingService.confirmBookReturn(inventoryNumber);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book returned successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @DeleteMapping("/deleteUser/{userId}")
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) throws NotFoundException {
+        userService.deleteUser(userId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "user deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

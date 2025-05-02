@@ -17,14 +17,21 @@ public class User {
     private String phoneNumber;
     private LocalDate dateOfBirth;
     private String identifier;
+    private LocalDate joinDate;
+    private String accountStatus;
+    private LocalDate lastActiveDate;
 
-    public User() {
-    }
-
-    public User(String username, String password, String role) {
+    public User(String username, String password, String role, LocalDate joinDate, String accountStatus, LocalDate lastActiveDate) {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.joinDate = joinDate;
+        this.accountStatus = accountStatus;
+        this.lastActiveDate = lastActiveDate;
+    }
+
+    public User() {
+
     }
 
     public Long getId() {
@@ -96,5 +103,29 @@ public class User {
 
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
+    }
+
+    public LocalDate getJoinDate() {
+        return joinDate;
+    }
+
+    public void setJoinDate(LocalDate joinDate) {
+        this.joinDate = joinDate;
+    }
+
+    public String getAccountStatus() {
+        return accountStatus;
+    }
+
+    public void setAccountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
+    }
+
+    public LocalDate getLastActiveDate() {
+        return lastActiveDate;
+    }
+
+    public void setLastActiveDate(LocalDate lastActiveDate) {
+        this.lastActiveDate = lastActiveDate;
     }
 }

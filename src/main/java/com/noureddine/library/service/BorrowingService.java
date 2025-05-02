@@ -57,8 +57,10 @@ public class BorrowingService {
                 Borrowing borrowing = new Borrowing(
                         copies.get(i),
                         member,
+                        LocalDate.now(),
                         request.getPickupDate(),
-                        request.getReturnDate()
+                        request.getReturnDate(),
+                        "PENDING"
                 );
                 //change the availability of the book copy
                 copies.get(i).setAvailable(false);
@@ -140,6 +142,7 @@ public class BorrowingService {
         bookCopyRepository.save(bookCopy);
         Borrowing borrowing = borrowingOptional.get();
         borrowing.setPickUpDate(LocalDate.now());
+        borrowing.setStatus("PICKED-UP");
         borrowingRepository.save(borrowing);
         Book book = bookCopy.getBook();
         if(book.isAvailable()){
@@ -157,6 +160,7 @@ public class BorrowingService {
         bookCopyRepository.save(bookCopy);
         Borrowing borrowing = borrowingOptional.get();
         borrowing.setReturnDate(LocalDate.now());
+        borrowing.setStatus("RETURNED");
         borrowingRepository.save(borrowing);
         Book book = bookCopy.getBook();
         if(book.isAvailable()){

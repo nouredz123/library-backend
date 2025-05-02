@@ -13,6 +13,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class AuthService {
 
@@ -27,10 +29,15 @@ public class AuthService {
         if(req.password == null || req.password.isEmpty()){throw new InvalidPasswordException("Password can not be empty");}
         if(req.password.length() < 8 ) {throw new InvalidPasswordException("Password must be at least 8 chars");}
         User user = new User();
+        user.setFullName(req.fullName);
         user.setUsername(req.username);
         user.setEmail(req.email);
         user.setPassword(passwordEncoder.encode(req.password));
+        user.setIdentifier(req.identifier);
+        user.setJoinDate(LocalDate.now());
         user.setRole("ROLE_" + req.role.toUpperCase());
+        user.setAccountStatus("PENDING");
+        user.setLastActiveDate(LocalDate.now());
         User savedUser = repo.save(user);
         String jwt = jwtService.generateToken(user);
         return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), savedUser.getId());
@@ -41,8 +48,17 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (!passwordEncoder.matches(req.password, user.getPassword()))
             throw new BadCredentialsException("Invalid credentials");
+        LocalDate lastActiveDate = user.getLastActiveDate() != null
+                ? user.getLastActiveDate()
+                : null;
+
+        if (lastActiveDate == null || !lastActiveDate.isEqual(LocalDate.now())) {
+            user.setLastActiveDate(LocalDate.now());
+            userRepository.save(user);
+        }
 
         var jwt = jwtService.generateToken(user);
+
         return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId());
     }
 }

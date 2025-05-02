@@ -12,16 +12,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepo;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepo) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
-        this.userRepo = userRepo;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -37,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         String username = jwtService.extractUsername(token);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var user = userRepo.findByUsername(username).orElseThrow();
+            var user = userRepository.findByUsername(username).orElseThrow();
             if (jwtService.isTokenValid(token, user)) {
                 var role = user.getRole();
                 if (!role.startsWith("ROLE_")) {
@@ -51,6 +52,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 System.out.println("Granted role: " + role);
                 System.out.println("Granted Authorities: " + authToken.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                LocalDate lastActiveDate = user.getLastActiveDate() != null
+                        ? user.getLastActiveDate()
+                        : null;
+
+                if (lastActiveDate == null || !lastActiveDate.isEqual(LocalDate.now())) {
+                    user.setLastActiveDate(LocalDate.now());
+                    userRepository.save(user);
+                }
             }
         }
         chain.doFilter(request, response);

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -44,9 +45,12 @@ public class DummyDataController {
                     "Author " + i,
                     "Publisher " + i,
                     "20" + (10 + i),
+                    "1545" + i * 10,
+                    i + random.nextInt() % 10,
                     true,
                     "https://example.com/book" + i + ".jpg",
-                    departments[random.nextInt(departments.length)]
+                    departments[random.nextInt(departments.length)],
+                    LocalDate.now()
             );
             books.add(book);
         }
@@ -60,7 +64,8 @@ public class DummyDataController {
                 BookCopy copy = new BookCopy(
                         "INV" + String.format("%03d", inventoryIndex++),
                         book,
-                        isAvailable
+                        isAvailable,
+                        "AVAILABLE"
                 );
                 bookCopies.add(copy);
             }

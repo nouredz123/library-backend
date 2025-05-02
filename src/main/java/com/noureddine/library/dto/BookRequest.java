@@ -8,9 +8,14 @@ public class BookRequest {
     private String Author;
     private String Publisher;
     private String EditionYear;
+    private String isbn;
+    private int numberOfCopies;
     private String coverUrl;
     private String department;
     private List<String> inventoryNumbers;
+
+    public BookRequest() {
+    }
 
     public String getTitle() {
         return Title;
@@ -66,5 +71,21 @@ public class BookRequest {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    public int getNumberOfCopies() {
+        return numberOfCopies;
+    }
+
+    public void setNumberOfCopies(int numberOfCopies) {
+        this.numberOfCopies = numberOfCopies;
     }
 }

@@ -11,9 +11,12 @@ import java.util.Optional;
 
 @Repository
 public interface BorrowingRepository extends JpaRepository<Borrowing, Long> {
-    public Optional<Borrowing> findByBookCopy(BookCopy bookCopy);
+    Optional<Borrowing> findByBookCopy(BookCopy bookCopy);
     List<Borrowing> findByMember(User member);
+    List<Borrowing> findByMemberAndStatus(User member, String status);
+    List<Borrowing> findByMemberAndStatusIn(User member, List<String> statuses);
     boolean existsByBookCopy(BookCopy inventoryNumber);
     void deleteByBookCopy(BookCopy bookCopy);
     boolean existsByBookCopyAndMember(BookCopy bookCopy, User member);
+    long countByStatus(String status);
 }

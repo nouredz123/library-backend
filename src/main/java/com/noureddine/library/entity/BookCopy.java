@@ -11,11 +11,13 @@ public class BookCopy {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
     private boolean available;
+    private String status;
 
-    public BookCopy(String inventoryNumber, Book book, boolean available) {
+    public BookCopy(String inventoryNumber, Book book, boolean available, String status) {
         this.inventoryNumber = inventoryNumber;
         this.book = book;
         this.available = available;
+        this.status = status;
     }
 
     public BookCopy() {
@@ -43,5 +45,13 @@ public class BookCopy {
 
     public void setAvailable(boolean available) {
         this.available = available;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
