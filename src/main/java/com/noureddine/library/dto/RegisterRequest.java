@@ -7,4 +7,6 @@ public class RegisterRequest {
     public String password;
     public String identifier;
     public String role;
+    public String cardBase64;
+    public String contentType;
 }

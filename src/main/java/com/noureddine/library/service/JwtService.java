@@ -11,12 +11,12 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-    private final String SECRET = "a-string-secret-at-least-256-bits-long-for-real";
+    private final String SECRET = "this-is-a-secret-key-for-generating-the-access-token";
     private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getUsername())
+                .setSubject(user.getEmail())
                 .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 240)) // 10 hours
@@ -24,12 +24,12 @@ public class JwtService {
                 .compact();
     }
 
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return Jwts.parserBuilder().setSigningKey(SECRET_KEY).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
     public boolean isTokenValid(String token, User user) {
-        return extractUsername(token).equals(user.getUsername());
+        return extractEmail(token).equals(user.getEmail());
     }
 }

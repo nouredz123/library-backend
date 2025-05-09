@@ -48,8 +48,12 @@ public class BorrowingService {
             throw new NotFoundException("There is no copies for this book");
         }
         for(int i = copies.size() - 1; i >= 0; i--){
-            if(borrowingRepository.existsByBookCopyAndMember(copies.get(i), member)){
-                throw new NotFoundException("book already borrowed by this user");
+            if (borrowingRepository.existsByBookCopyAndMemberAndStatusIn(
+                    copies.get(i),
+                    member,
+                    List.of("PENDING", "PICKED_UP")
+            )) {
+                throw new NotFoundException("Book already borrowed by this user and not yet returned.");
             }
         }
         for(int i = copies.size() - 1; i >= 0; i--){

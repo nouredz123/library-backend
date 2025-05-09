@@ -18,5 +18,6 @@ public interface BorrowingRepository extends JpaRepository<Borrowing, Long> {
     boolean existsByBookCopy(BookCopy inventoryNumber);
     void deleteByBookCopy(BookCopy bookCopy);
     boolean existsByBookCopyAndMember(BookCopy bookCopy, User member);
+    boolean existsByBookCopyAndMemberAndStatusIn(BookCopy copy, User member, List<String> statuses);
     long countByStatus(String status);
 }

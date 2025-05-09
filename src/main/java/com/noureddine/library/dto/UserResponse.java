@@ -1,16 +1,10 @@
-package com.noureddine.library.entity;
-
-import jakarta.persistence.*;
+package com.noureddine.library.dto;
 
 import java.time.LocalDate;
-@Entity
-@Table(name = "user", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+public class UserResponse {
     private Long id;
     private String username;
-    private String password;
     private String role;
     private String fullName;
     private String email;
@@ -20,23 +14,8 @@ public class User {
     private LocalDate joinDate;
     private String accountStatus;
     private LocalDate lastActiveDate;
-    @Lob
-    private byte[] studentCard;
-    private String studentCardContentType;
-
-    public User(String username, String password, String role, LocalDate joinDate, String accountStatus, LocalDate lastActiveDate) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-        this.joinDate = joinDate;
-        this.accountStatus = accountStatus;
-        this.lastActiveDate = lastActiveDate;
-    }
-
-    public User() {
-
-    }
-
+    private String cardBase64;
+    private String contentType;
 
     public Long getId() {
         return id;
@@ -54,13 +33,7 @@ public class User {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public String getRole() {
         return role;
@@ -69,6 +42,7 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
+
     public String getFullName() {
         return fullName;
     }
@@ -133,19 +107,19 @@ public class User {
         this.lastActiveDate = lastActiveDate;
     }
 
-    public byte[] getStudentCard() {
-        return studentCard;
+    public String getCardBase64() {
+        return cardBase64;
     }
 
-    public void setStudentCard(byte[] studentCard) {
-        this.studentCard = studentCard;
+    public void setCardBase64(String cardBase64) {
+        this.cardBase64 = cardBase64;
     }
 
-    public String getStudentCardContentType() {
-        return studentCardContentType;
+    public String getContentType() {
+        return contentType;
     }
 
-    public void setStudentCardContentType(String studentCardContentType) {
-        this.studentCardContentType = studentCardContentType;
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 }

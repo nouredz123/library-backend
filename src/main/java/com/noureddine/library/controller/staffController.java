@@ -2,6 +2,7 @@ package com.noureddine.library.controller;
 
 import com.noureddine.library.dto.CopiesResponse;
 import com.noureddine.library.dto.InsightsResponse;
+import com.noureddine.library.dto.UserResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.dto.BookRequest;
@@ -43,16 +44,28 @@ public class staffController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/users")
-    public PagedModel<EntityModel<User>> getUsers(
+    public PagedModel<EntityModel<UserResponse>> getUsers(
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction,
-            PagedResourcesAssembler<User> assembler
+            PagedResourcesAssembler<UserResponse> assembler
     ) throws NotFoundException {
-        Page<User> users = userService.getUsers( role, page, size, sortBy, direction);
+        Page<UserResponse> users = userService.getUsers( role, page, size, sortBy, direction);
         return assembler.toModel(users);
+    }
+    @GetMapping("/accountRequests")
+    public PagedModel<EntityModel<UserResponse>> getAccountRequests(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            PagedResourcesAssembler<UserResponse> assembler
+    ) throws NotFoundException {
+        Page<UserResponse> accountRequests = userService.getAccountRequests( status, page, size, sortBy, direction);
+        return assembler.toModel(accountRequests);
     }
     @GetMapping("/books")
     public PagedModel<EntityModel<Book>> getBooks(
@@ -66,6 +79,7 @@ public class staffController {
         Page<Book> books = bookService.getBooks(department, page, size, sortBy, direction);
         return assembler.toModel(books);
     }
+
     @GetMapping("/bookCopies")
     public List<CopiesResponse> getBookCopies() throws NotFoundException {
         return bookCopyService.getCopies();
@@ -131,6 +145,13 @@ public class staffController {
         userService.deleteUser(userId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "user deleted successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @PatchMapping("/reviewAccount/{userId}")
+    public ResponseEntity<Map<String, String>> reviewAccount(@PathVariable Long userId, @RequestParam String status) throws NotFoundException {
+        userService.reviewAccount(userId, status);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Account reviewed successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

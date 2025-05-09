@@ -12,7 +12,7 @@ public class Borrowing {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "inventory_number", nullable = false)
     private BookCopy bookCopy;
     @ManyToOne

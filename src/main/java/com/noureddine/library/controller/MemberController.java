@@ -45,6 +45,15 @@ public class MemberController {
         Page<Book> books = bookService.getBooks(department, page, size, sortBy, direction);
         return assembler.toModel(books);
     }
+    @GetMapping("/books/search")
+    public Page<Book> searchBooks(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) throws NotFoundException {
+        return bookService.searchBooks(keyword, page, size, sortBy, direction);
+    }
     @GetMapping("/{memberId}/info")
     public ResponseEntity<User> getInfo(@PathVariable Long memberId) throws NotFoundException {
         User user = userService.getInfo(memberId);

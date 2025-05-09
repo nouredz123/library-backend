@@ -43,15 +43,18 @@ public class BookService {
         }
 
         return booksPage;
-        //List<Book> content = booksPage.getContent();
-        //return new PageResponse<>(
-          //      content,
-            //    booksPage.getNumber(),
-              //  booksPage.getSize(),
-                //booksPage.getTotalElements(),
-                //booksPage.getTotalPages(),
-                //booksPage.isLast()
-        //);
+    }
+    public Page<Book> searchBooks(String keyword, int page, int size, String sortBy, String direction) throws NotFoundException {
+        Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Book> booksPage = bookRepository.searchBooks(keyword, pageable);
+
+        if (booksPage.isEmpty()) {
+            throw new NotFoundException("No books found matching your search");
+        }
+
+        return booksPage;
     }
     public void addBook(BookRequest bookRequest) throws NotFoundException {
         boolean available = !bookRequest.getInventoryNumbers().isEmpty();

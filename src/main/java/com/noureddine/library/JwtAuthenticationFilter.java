@@ -1,5 +1,6 @@
 package com.noureddine.library;
 
+import com.noureddine.library.entity.User;
 import com.noureddine.library.repository.UserRepository;
 import com.noureddine.library.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -36,21 +37,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var user = userRepository.findByUsername(username).orElseThrow();
+        String email = jwtService.extractEmail(token);
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            User user = userRepository.findByEmail(email).orElseThrow();
             if (jwtService.isTokenValid(token, user)) {
                 var role = user.getRole();
                 if (!role.startsWith("ROLE_")) {
-                    role = "ROLE_" + role.toUpperCase(); // ensure it has the prefix
+                    role = "ROLE_" + role.toUpperCase();
                 }
-                var authToken = new UsernamePasswordAuthenticationToken(
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         user,
                         null,
                         List.of(new SimpleGrantedAuthority(role))
                 );
-                System.out.println("Granted role: " + role);
-                System.out.println("Granted Authorities: " + authToken.getAuthorities());
+                System.out.println("role: " + role);
+                System.out.println("Authorities: " + authToken.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
                 LocalDate lastActiveDate = user.getLastActiveDate() != null
