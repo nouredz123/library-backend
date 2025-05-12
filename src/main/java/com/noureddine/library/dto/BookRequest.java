@@ -9,12 +9,25 @@ public class BookRequest {
     private String Publisher;
     private String EditionYear;
     private String isbn;
+    private String cote;
     private int numberOfCopies;
     private String coverUrl;
     private String department;
     private List<String> inventoryNumbers;
 
     public BookRequest() {
+    }
+
+    public BookRequest(String title, String author, String publisher, String editionYear, String isbn, String cote, int numberOfCopies, String coverUrl, String department) {
+        Title = title;
+        Author = author;
+        Publisher = publisher;
+        EditionYear = editionYear;
+        this.isbn = isbn;
+        this.cote = cote;
+        this.numberOfCopies = numberOfCopies;
+        this.coverUrl = coverUrl;
+        this.department = department;
     }
 
     public String getTitle() {
@@ -87,5 +100,13 @@ public class BookRequest {
 
     public void setNumberOfCopies(int numberOfCopies) {
         this.numberOfCopies = numberOfCopies;
+    }
+
+    public String getCote() {
+        return cote;
+    }
+
+    public void setCote(String cote) {
+        this.cote = cote;
     }
 }

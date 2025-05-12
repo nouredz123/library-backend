@@ -3,6 +3,8 @@ package com.noureddine.library.repository;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +22,8 @@ public interface BorrowingRepository extends JpaRepository<Borrowing, Long> {
     boolean existsByBookCopyAndMember(BookCopy bookCopy, User member);
     boolean existsByBookCopyAndMemberAndStatusIn(BookCopy copy, User member, List<String> statuses);
     long countByStatus(String status);
+
+    Page<Borrowing> findByStatus(String status, Pageable pageable);
+    List<Borrowing> findByStatus(String status);
+
 }

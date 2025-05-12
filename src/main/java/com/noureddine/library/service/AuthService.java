@@ -43,6 +43,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(req.password));
         user.setIdentifier(req.identifier);
         user.setJoinDate(LocalDate.now());
+        user.setBirthWilaya(req.birthWilaya);
+        user.setDateOfBirth(req.dateOfBirth);
         user.setRole("ROLE_" + req.role.toUpperCase());
         user.setAccountStatus("PENDING");
         user.setLastActiveDate(LocalDate.now());
@@ -70,6 +72,11 @@ public class AuthService {
         String jwt = jwtService.generateToken(user);
 
         return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId());
+    }
+
+    public boolean isEmailValid(String email) {
+        Boolean isEmailExists = userRepository.existsByEmail(email);
+        return !isEmailExists;
     }
 }
 

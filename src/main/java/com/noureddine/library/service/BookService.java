@@ -44,11 +44,16 @@ public class BookService {
 
         return booksPage;
     }
-    public Page<Book> searchBooks(String keyword, int page, int size, String sortBy, String direction) throws NotFoundException {
+    public Page<Book> searchBooks(String keyword, Boolean available, int page, int size, String sortBy, String direction) throws NotFoundException {
         Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-
-        Page<Book> booksPage = bookRepository.searchBooks(keyword, pageable);
+        Page<Book> booksPage ;
+        if (available != null){
+            booksPage = bookRepository.searchBooksAndAvailable(keyword, available, pageable);
+            System.out.println("aaavv" + available);
+        }else{
+            booksPage = bookRepository.searchBooks(keyword, pageable);
+        }
 
         if (booksPage.isEmpty()) {
             throw new NotFoundException("No books found matching your search");
@@ -57,53 +62,45 @@ public class BookService {
         return booksPage;
     }
     public void addBook(BookRequest bookRequest) throws NotFoundException {
-        boolean available = !bookRequest.getInventoryNumbers().isEmpty();
         Book book = new Book(
                 bookRequest.getTitle(),
                 bookRequest.getAuthor(),
                 bookRequest.getPublisher(),
                 bookRequest.getEditionYear(),
                 bookRequest.getIsbn(),
+                bookRequest.getCote(),
                 bookRequest.getNumberOfCopies(),
-                available,
+                true,
                 bookRequest.getCoverUrl(),
                 bookRequest.getDepartment(),
                 LocalDate.now()
         );
         Book savedBook = bookRepository.save(book);
-        if(bookRequest.getInventoryNumbers().isEmpty()){
-            return;
-        }
-        //check for the copies inventory numbers if they exist for other books
-        List<BookCopy> existingCopies  = bookCopyRepository.findAllById(bookRequest.getInventoryNumbers());
-        if(!existingCopies.isEmpty()){
-            for(BookCopy existingCopy : existingCopies){
-                if(!existingCopy.getBook().getId().equals(savedBook.getId())){
-                    throw new NotFoundException("The book copy '" + existingCopy.getInventoryNumber() + "' already exists for another book");
-                }
-            }
-        }
-        //save the book copies
-        for(String inventoryNumber : bookRequest.getInventoryNumbers()){
+        for (int i = 1; i <= bookRequest.getNumberOfCopies(); i++){
             BookCopy copy = new BookCopy(
-                    inventoryNumber,
+                    bookRequest.getCote() + "." + i,
                     savedBook,
-                    true,
-                    "AVAILABLE"
+                    true
             );
             bookCopyRepository.save(copy);
         }
     }
     public void removeBook(Long bookId) throws NotFoundException {
-        if(!bookRepository.existsById(bookId)){
-            throw new NotFoundException("The book not found");
-        }
+        Book book = bookRepository.findById(bookId).orElseThrow(()-> new NotFoundException("The book not found"));
         bookRepository.deleteById(bookId);
-        List<BookCopy> bookCopies = bookCopyRepository.findByBookId(bookId);
+        List<BookCopy> bookCopies = bookCopyRepository.findByBook(book);
         if(!bookCopies.isEmpty()){
             for(BookCopy copy : bookCopies){
                 bookCopyRepository.deleteById(copy.getInventoryNumber());
             }
         }
+    }
+    public boolean isCoteValid(String cote){
+        Boolean isBookExists = bookRepository.existsByCote(cote);
+        return !isBookExists;
+    }
+    public boolean isIsbnValid(String isbn) {
+        Boolean isBookExists = bookRepository.existsByIsbn(isbn);
+        return !isBookExists;
     }
 }

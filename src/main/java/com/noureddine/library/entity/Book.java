@@ -15,6 +15,7 @@ public class Book {
     private String publisher;
     private String editionYear;
     private String isbn;
+    private String cote;
     private int numberOfCopies;
     private Boolean available;
     private String coverUrl;
@@ -25,12 +26,13 @@ public class Book {
     public Book() {
     }
 
-    public Book(String title, String author, String publisher, String editionYear, String isbn, int numberOfCopies, Boolean available, String coverUrl, String department, LocalDate addedDate) {
+    public Book(String title, String author, String publisher, String editionYear, String isbn, String cote, int numberOfCopies, Boolean available, String coverUrl, String department, LocalDate addedDate) {
         this.title = title;
         this.author = author;
         this.publisher = publisher;
         this.editionYear = editionYear;
         this.isbn = isbn;
+        this.cote = cote;
         this.numberOfCopies = numberOfCopies;
         this.available = available;
         this.coverUrl = coverUrl;
@@ -128,5 +130,13 @@ public class Book {
 
     public void setNumberOfCopies(int numberOfCopies) {
         this.numberOfCopies = numberOfCopies;
+    }
+
+    public String getCote() {
+        return cote;
+    }
+
+    public void setCote(String cote) {
+        this.cote = cote;
     }
 }

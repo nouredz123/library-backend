@@ -1,11 +1,14 @@
 package com.noureddine.library.controller;
 
+import com.noureddine.library.dto.BookRequest;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.entity.Borrowing;
+import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.repository.BookCopyRepository;
 import com.noureddine.library.repository.BookRepository;
 import com.noureddine.library.repository.BorrowingRepository;
+import com.noureddine.library.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +25,9 @@ import java.util.Random;
 public class DummyDataController {
 
     @Autowired
+    private BookService bookService;
+
+    @Autowired
     private BookRepository bookRepository;
 
     @Autowired
@@ -31,51 +37,27 @@ public class DummyDataController {
     private BorrowingRepository borrowingRepository;
 
     @GetMapping("/seed")
-    public ResponseEntity<String> seedDatabase() {
+    public ResponseEntity<String> seedDatabase() throws NotFoundException {
         List<Book> books = new ArrayList<>();
-        List<BookCopy> bookCopies = new ArrayList<>();
-        List<Borrowing> borrowings = new ArrayList<>();
         String[] departments = {"Computer Science", "Mathematics", "Chemistry", "Physics"};
         Random random = new Random();
 
         // Create and save 10 books
         for (int i = 1; i <= 10; i++) {
-            Book book = new Book(
+            BookRequest request = new BookRequest(
                     "Book Title " + i,
                     "Author " + i,
                     "Publisher " + i,
                     "20" + (10 + i),
-                    "1545" + i * 10,
+                    "1545" + i + random.nextInt() % 25 * 10,
+                    "004-15" + i + random.nextInt() % 10,
                     i + random.nextInt() % 10,
-                    true,
                     "https://example.com/book" + i + ".jpg",
-                    departments[random.nextInt(departments.length)],
-                    LocalDate.now()
+                    departments[random.nextInt(departments.length)]
             );
-            books.add(book);
+            bookService.addBook(request);
         }
         bookRepository.saveAll(books);
-
-        // Add 3 copies per book: 2 available, 1 unavailable
-        int inventoryIndex = 1;
-        for (Book book : books) {
-            for (int j = 1; j <= 3; j++) {
-                boolean isAvailable = (j != 2); // Make 2nd copy unavailable
-                BookCopy copy = new BookCopy(
-                        "INV" + String.format("%03d", inventoryIndex++),
-                        book,
-                        isAvailable,
-                        "AVAILABLE"
-                );
-                bookCopies.add(copy);
-            }
-        }
-        bookCopyRepository.saveAll(bookCopies);
-
-        // Create sample borrowings (match unavailable copies)
-
-        borrowingRepository.saveAll(borrowings);
-
         return ResponseEntity.ok("Database seeded with dummy data!");
     }
 

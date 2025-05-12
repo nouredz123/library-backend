@@ -34,7 +34,7 @@ public class MemberController {
         this.userService = userService;
     }
     @GetMapping("/books")
-    public PagedModel<EntityModel<Book>> getBooks(
+    public Page<Book> getBooks(
             @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -42,17 +42,17 @@ public class MemberController {
             @RequestParam(defaultValue = "asc") String direction,
             PagedResourcesAssembler<Book> assembler
     ) throws NotFoundException {
-        Page<Book> books = bookService.getBooks(department, page, size, sortBy, direction);
-        return assembler.toModel(books);
+       return bookService.getBooks(department, page, size, sortBy, direction);
     }
     @GetMapping("/books/search")
     public Page<Book> searchBooks(
             @RequestParam String keyword,
+            @RequestParam(required = false) Boolean available,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
             @RequestParam(defaultValue = "asc") String direction) throws NotFoundException {
-        return bookService.searchBooks(keyword, page, size, sortBy, direction);
+        return bookService.searchBooks(keyword, available, page, size, sortBy, direction);
     }
     @GetMapping("/{memberId}/info")
     public ResponseEntity<User> getInfo(@PathVariable Long memberId) throws NotFoundException {

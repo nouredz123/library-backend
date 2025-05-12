@@ -16,6 +16,7 @@ public class User {
     private String email;
     private String phoneNumber;
     private LocalDate dateOfBirth;
+    private String birthWilaya;
     private String identifier;
     private LocalDate joinDate;
     private String accountStatus;
@@ -23,11 +24,13 @@ public class User {
     @Lob
     private byte[] studentCard;
     private String studentCardContentType;
+    private int numberOfBorrowings;
 
-    public User(String username, String password, String role, LocalDate joinDate, String accountStatus, LocalDate lastActiveDate) {
+    public User(String username, String password, String role, String birthWilaya, LocalDate joinDate, String accountStatus, LocalDate lastActiveDate) {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.birthWilaya = birthWilaya;
         this.joinDate = joinDate;
         this.accountStatus = accountStatus;
         this.lastActiveDate = lastActiveDate;
@@ -147,5 +150,21 @@ public class User {
 
     public void setStudentCardContentType(String studentCardContentType) {
         this.studentCardContentType = studentCardContentType;
+    }
+
+    public String getBirthWilaya() {
+        return birthWilaya;
+    }
+
+    public void setBirthWilaya(String birthWilaya) {
+        this.birthWilaya = birthWilaya;
+    }
+
+    public int getNumberOfBorrowings() {
+        return numberOfBorrowings;
+    }
+
+    public void setNumberOfBorrowings(int numberOfBorrowings) {
+        this.numberOfBorrowings = numberOfBorrowings;
     }
 }

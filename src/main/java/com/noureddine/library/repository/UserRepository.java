@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Long countByAccountStatus(String status);
     Long countByLastActiveDateAfterAndAccountStatusAndRole(LocalDate date, String status, String role);
     Page<User> findByRoleAndAccountStatus(String roleMember, String upperCase, Pageable pageable);
+
+    Boolean existsByEmail(String email);
 }

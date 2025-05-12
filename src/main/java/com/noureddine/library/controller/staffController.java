@@ -1,11 +1,8 @@
 package com.noureddine.library.controller;
 
-import com.noureddine.library.dto.CopiesResponse;
-import com.noureddine.library.dto.InsightsResponse;
-import com.noureddine.library.dto.UserResponse;
+import com.noureddine.library.dto.*;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
-import com.noureddine.library.dto.BookRequest;
 import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.NotFoundException;
@@ -68,16 +65,14 @@ public class staffController {
         return assembler.toModel(accountRequests);
     }
     @GetMapping("/books")
-    public PagedModel<EntityModel<Book>> getBooks(
+    public Page<Book> getBooks(
             @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            PagedResourcesAssembler<Book> assembler
+            @RequestParam(defaultValue = "asc") String direction
     ) throws NotFoundException {
-        Page<Book> books = bookService.getBooks(department, page, size, sortBy, direction);
-        return assembler.toModel(books);
+        return bookService.getBooks(department, page, size, sortBy, direction);
     }
 
     @GetMapping("/bookCopies")
@@ -85,8 +80,16 @@ public class staffController {
         return bookCopyService.getCopies();
     }
     @GetMapping("/borrowings")
-    public List<Borrowing> getBorrowings() throws NotFoundException {
-        return borrowingService.getAll();
+    public PagedModel<EntityModel<Borrowing>> getBorrowings(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            PagedResourcesAssembler<Borrowing> assembler
+    ) throws NotFoundException {
+        Page<Borrowing> borrowings = borrowingService.getAll(status, page, size, sortBy, direction);
+        return assembler.toModel(borrowings);
     }
     @GetMapping("/BorrowingsByMemberId")
     public List<Borrowing> getMemberBorrowings(@RequestParam Long memberId) throws NotFoundException {
@@ -96,7 +99,23 @@ public class staffController {
     public Borrowing getBorrowing(@RequestParam String inventoryNumber) throws NotFoundException {
         return borrowingService.getBorrowingByInvNumber(inventoryNumber);
     }
+    @GetMapping("/validate/cote")
+    public ResponseEntity<Boolean> validateCote(@RequestParam String cote) {
+        return ResponseEntity.ok(bookService.isCoteValid(cote));
+    }
 
+    @GetMapping("/validate/isbn")
+    public ResponseEntity<Boolean> validateIsbn(@RequestParam String isbn){
+        return ResponseEntity.ok(bookService.isIsbnValid(isbn));
+    }
+
+    @PatchMapping("/reviewBorrowRequest/{borrowingId}")
+    public ResponseEntity<Map<String, String>> reviewBorrowing(@PathVariable Long borrowingId, @RequestParam String status) throws NotFoundException {
+        borrowingService.reviewBorrowing(borrowingId, status);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Borrowing reviewed successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
     @PostMapping("/book")
     public ResponseEntity<Map<String, String>> addBook(@RequestBody BookRequest request) throws NotFoundException {
         bookService.addBook(request);
@@ -105,8 +124,8 @@ public class staffController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     @PostMapping("/bookCopy")
-    public ResponseEntity<Map<String, String>> addBookCopy(@RequestBody BookCopy bookcopy) throws NotFoundException {
-        bookCopyService.addBookCopy(bookcopy);
+    public ResponseEntity<Map<String, String>> addBookCopy(@RequestBody BookCopyRequest request) throws NotFoundException {
+        bookCopyService.addBookCopy(request);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book copy added successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);

@@ -10,6 +10,11 @@ import com.noureddine.library.repository.BookCopyRepository;
 import com.noureddine.library.repository.BookRepository;
 import com.noureddine.library.repository.BorrowingRepository;
 import com.noureddine.library.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,20 +35,76 @@ public class BorrowingService {
         this.userRepository = userRepository;
     }
 
-    public List<Borrowing> getAll() throws NotFoundException {
-        List<Borrowing> borrowings = borrowingRepository.findAll();
-        if(borrowings.isEmpty()){
+
+    @Scheduled(cron = "0 0 1 * * ?") // Runs every day at 1 AM
+    public void cancelOverduePendingBorrowingsTask() {
+        cancelOverduePendingBorrowings();
+        OverduePickedUpBorrowings();
+        System.out.println("Overdue pending borrowings cleanup ran at: " + LocalDate.now());
+    }
+    public void cancelOverduePendingBorrowings() {
+        List<Borrowing> pendingBorrowings = borrowingRepository.findByStatus("PENDING");
+
+        for (Borrowing borrowing : pendingBorrowings) {
+            // If pick up date is set and it’s in the past, cancel it
+            if (borrowing.getPickUpDate() != null && borrowing.getPickUpDate().isBefore(LocalDate.now())) {
+                borrowing.setStatus("CANCELLED");
+                borrowingRepository.save(borrowing);
+
+                // Make the book copy available again
+                BookCopy bookCopy = borrowing.getBookCopy();
+                bookCopy.setAvailable(true);
+                bookCopyRepository.save(bookCopy);
+
+                // Decrease member's borrow count
+                User member = borrowing.getMember();
+                member.setNumberOfBorrowings(member.getNumberOfBorrowings() - 1);
+                userRepository.save(member);
+            }
+        }
+    }
+    public void OverduePickedUpBorrowings() {
+        List<Borrowing> pendingBorrowings = borrowingRepository.findByStatus("PICKED_UP");
+
+        for (Borrowing borrowing : pendingBorrowings) {
+            if (borrowing.getPickUpDate() != null && borrowing.getPickUpDate().isBefore(LocalDate.now())) {
+                borrowing.setStatus("OVERDUE");
+                borrowingRepository.save(borrowing);
+            }
+        }
+    }
+
+
+    public Page<Borrowing> getAll(String status, int page, int size, String sortBy, String direction) throws NotFoundException {
+        Sort sort = direction.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Borrowing> borrowingsPage ;
+
+        if (status != null && !status.isEmpty()) {
+            borrowingsPage = borrowingRepository.findByStatus(status, pageable);
+        } else {
+            borrowingsPage = borrowingRepository.findAll(pageable);
+        }
+
+        if(borrowingsPage.isEmpty()){
             throw new NotFoundException("There are no borrowings");
         }
-        return borrowings;
+        return borrowingsPage;
     }
     public void borrow(BorrowRequest request) throws NotFoundException {
         Book book = bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new NotFoundException("The book not found"));
         User member = userRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new NotFoundException("There is no user with the provided id"));
+        if(!member.getAccountStatus().equals("APPROVED")){
+            throw new NotFoundException("Your account is pending approval. Please wait for confirmation.");
+        }
+        if(member.getNumberOfBorrowings() >= 2){
+            throw new NotFoundException("You have reached the maximum number of borrowings");
+        }
         //choose which copy to borrow and save the borrowing
-        List<BookCopy> copies = bookCopyRepository.findByBookId(book.getId());
+        List<BookCopy> copies = bookCopyRepository.findByBook(book);
         if(copies.isEmpty()){
             throw new NotFoundException("There is no copies for this book");
         }
@@ -62,8 +123,8 @@ public class BorrowingService {
                         copies.get(i),
                         member,
                         LocalDate.now(),
-                        request.getPickupDate(),
-                        request.getReturnDate(),
+                        LocalDate.now().plusDays(3),
+                        LocalDate.now().plusDays(10),
                         "PENDING"
                 );
                 //change the availability of the book copy
@@ -76,6 +137,8 @@ public class BorrowingService {
                 }
                 //save the new borrowing
                 borrowingRepository.save(borrowing);
+                member.setNumberOfBorrowings(member.getNumberOfBorrowings() + 1);
+                userRepository.save(member);
                 return;
             }
         }
@@ -171,5 +234,24 @@ public class BorrowingService {
             book.setAvailable(true);
             bookRepository.save(book);
         }
+    }
+
+    public void reviewBorrowing(Long borrowingId, String status) throws NotFoundException {
+        Borrowing borrowing = borrowingRepository.findById(borrowingId).orElseThrow(()-> new NotFoundException("Borrowing not found."));
+
+        if(status.isEmpty() || !(status.equalsIgnoreCase("PENDING") || status.equalsIgnoreCase("PICKED_UP") || status.equalsIgnoreCase("RETURNED"))){
+            throw new NotFoundException("Invalid status");
+        }
+        borrowing.setStatus(status.toUpperCase());
+        if(status.equalsIgnoreCase("PICKED_UP")){
+            borrowing.setPickUpDate(LocalDate.now());
+            borrowing.setReturnDate(LocalDate.now().plusDays(7));
+        } else if (status.equalsIgnoreCase("RETURNED")){
+            borrowing.setReturnDate(LocalDate.now());
+            User member = userRepository.findById(borrowing.getMember().getId()).orElseThrow(()->new NotFoundException("User not found."));
+            member.setNumberOfBorrowings(member.getNumberOfBorrowings() - 1);
+            userRepository.save(member);
+        }
+        borrowingRepository.save(borrowing);
     }
 }

@@ -1,5 +1,6 @@
 package com.noureddine.library.service;
 
+import com.noureddine.library.dto.BookCopyRequest;
 import com.noureddine.library.dto.CopiesResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.BookCopy;
@@ -43,30 +44,16 @@ public class BookCopyService {
         }
         return responses;
     }
-    public void addBookCopy(BookCopy copyRequest) throws NotFoundException {
-        // Check if the inventory number already exists
-        Optional<BookCopy> copyOptional  = bookCopyRepository.findById(copyRequest.getInventoryNumber());
-        if(copyOptional.isPresent()){
-                Book existingBook = copyOptional.get().getBook();
-                //if they not for the same book
-            if (!existingBook.getId().equals(copyRequest.getBook().getId())) {
-                throw new NotFoundException("The book copy '" + copyRequest.getInventoryNumber() + "' already exists for another book");
-            }
-        }
-        // Ensure the book exists in the database
-        Long bookId = copyRequest.getBook().getId();
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new NotFoundException("Book with id " + bookId + " not found"));
-
-        BookCopy bookCopy = new BookCopy(copyRequest.getInventoryNumber(), book, true, copyRequest.getStatus());
-
-        // Save the copy
-        bookCopyRepository.save(copyRequest);
-
-        // If the book is currently marked unavailable, mark it available
-        if (!book.isAvailable()) {
-            book.setAvailable(true);
-            bookRepository.save(book);
+    public void addBookCopy(BookCopyRequest request) throws NotFoundException {
+        Book book = bookRepository.findById(request.getBookId()).orElseThrow(()-> new NotFoundException("Book not found"));
+        int numOfCop = book.getNumberOfCopies();
+        for (int i = 1 + numOfCop; i <= numOfCop+ request.getNumberOfCopies(); i++ ){
+            BookCopy copy = new BookCopy(
+                    book.getCote() + "." + i,
+                    book,
+                    true
+            );
+            bookCopyRepository.save(copy);
         }
     }
     public void removeBookCopy(String inventoryNumber) throws NotFoundException {
