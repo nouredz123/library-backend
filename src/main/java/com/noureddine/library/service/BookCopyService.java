@@ -44,10 +44,10 @@ public class BookCopyService {
         }
         return responses;
     }
-    public void addBookCopy(BookCopyRequest request) throws NotFoundException {
-        Book book = bookRepository.findById(request.getBookId()).orElseThrow(()-> new NotFoundException("Book not found"));
+    public void addBookCopy(Long bookId, int numberOfCopies) throws NotFoundException {
+        Book book = bookRepository.findById(bookId).orElseThrow(()-> new NotFoundException("Book not found"));
         int numOfCop = book.getNumberOfCopies();
-        for (int i = 1 + numOfCop; i <= numOfCop+ request.getNumberOfCopies(); i++ ){
+        for (int i = 1 + numOfCop; i <= numOfCop+ numberOfCopies; i++ ){
             BookCopy copy = new BookCopy(
                     book.getCote() + "." + i,
                     book,
@@ -55,6 +55,9 @@ public class BookCopyService {
             );
             bookCopyRepository.save(copy);
         }
+        book.setNumberOfCopies(numOfCop + numberOfCopies);
+        book.setAvailableCopies(book.getAvailableCopies() + numberOfCopies);
+        bookRepository.save(book);
     }
     public void removeBookCopy(String inventoryNumber) throws NotFoundException {
         if(!bookCopyRepository.existsById(inventoryNumber)){

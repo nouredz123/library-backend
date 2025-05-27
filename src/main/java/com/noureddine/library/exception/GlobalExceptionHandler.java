@@ -13,7 +13,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleBookNotFound(NotFoundException exception){
+    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException exception){
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", exception.getMessage());
+        return new ResponseEntity<>(errorResponse,HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(InvalidArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidArgument(InvalidArgumentException exception){
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("error", exception.getMessage());
         return new ResponseEntity<>(errorResponse,HttpStatus.NOT_FOUND);

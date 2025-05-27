@@ -10,13 +10,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
-public class ReportsService {
+public class InsightsService {
     private final BookRepository bookRepository;
     private final BorrowingRepository borrowingRepository;
     private final UserRepository userRepository;
     private final BookCopyRepository bookCopyRepository;
 
-    public ReportsService(BookRepository bookRepository, BorrowingRepository borrowingRepository, UserRepository userRepository, BookCopyRepository bookCopyRepository) {
+    public InsightsService(BookRepository bookRepository, BorrowingRepository borrowingRepository, UserRepository userRepository, BookCopyRepository bookCopyRepository) {
         this.bookRepository = bookRepository;
         this.borrowingRepository = borrowingRepository;
         this.userRepository = userRepository;

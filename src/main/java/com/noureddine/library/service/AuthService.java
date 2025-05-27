@@ -3,7 +3,9 @@ package com.noureddine.library.service;
 import com.noureddine.library.dto.AuthRequest;
 import com.noureddine.library.dto.AuthResponse;
 import com.noureddine.library.dto.RegisterRequest;
+import com.noureddine.library.dto.RegisterRequestAdmin;
 import com.noureddine.library.entity.User;
+import com.noureddine.library.exception.InvalidArgumentException;
 import com.noureddine.library.exception.InvalidPasswordException;
 import com.noureddine.library.exception.EmailAlreadyExistsException;
 import com.noureddine.library.repository.UserRepository;
@@ -46,12 +48,32 @@ public class AuthService {
         user.setBirthWilaya(req.birthWilaya);
         user.setDateOfBirth(req.dateOfBirth);
         user.setRole("ROLE_" + req.role.toUpperCase());
-        user.setAccountStatus("PENDING");
+        user.setAccountStatus(req.role.equalsIgnoreCase("MEMBER") ? "PENDING" : "APPROVED" );
         user.setLastActiveDate(LocalDate.now());
         user.setStudentCard(Base64.getDecoder().decode(req.cardBase64));
         user.setStudentCardContentType(req.contentType);
         User savedUser = userRepository.save(user);
         String jwt = jwtService.generateToken(user);
+        return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), savedUser.getId());
+    }
+    public AuthResponse registerAdmin(RegisterRequestAdmin req) {
+        String verificationCode = "adminVerificationCode";
+        if(!verificationCode.equals(req.adminCode)){
+            throw new InvalidArgumentException("Please provide a valid admin code to continue.");
+        }
+        userRepository.findByEmail(req.email)
+                .ifPresent(user -> {
+                    throw new EmailAlreadyExistsException("A user with this email already exists");
+                });
+        if(req.password == null || req.password.isEmpty()){throw new InvalidPasswordException("Please enter your password.");}
+        if(req.password.length() < 8 ) {throw new InvalidPasswordException("Your password must be at least 8 characters long.");}
+        User user = new User();
+        user.setFullName(req.fullName);
+        user.setEmail(req.email);
+        user.setPassword(passwordEncoder.encode(req.password));
+        user.setRole("ROLE_STAFF");
+        String jwt = jwtService.generateToken(user);
+        User savedUser = userRepository.save(user);
         return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), savedUser.getId());
     }
 

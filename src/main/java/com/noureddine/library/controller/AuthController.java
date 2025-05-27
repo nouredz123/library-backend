@@ -3,6 +3,7 @@ package com.noureddine.library.controller;
 import com.noureddine.library.dto.AuthRequest;
 import com.noureddine.library.dto.AuthResponse;
 import com.noureddine.library.dto.RegisterRequest;
+import com.noureddine.library.dto.RegisterRequestAdmin;
 import com.noureddine.library.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest req) {
         return ResponseEntity.ok(service.register(req));
+    }
+    @PostMapping("/register-admin")
+    public ResponseEntity<AuthResponse> registerAdmin(@RequestBody RegisterRequestAdmin req) {
+        return ResponseEntity.ok(service.registerAdmin(req));
     }
 
     @PostMapping("/login")

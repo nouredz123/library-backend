@@ -17,6 +17,9 @@ public class BookCopy {
         this.book = book;
         this.available = available;
     }
+    public BookCopy( Book book) {
+        this.book = book;
+    }
 
     public BookCopy() {
     }

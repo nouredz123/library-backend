@@ -10,7 +10,9 @@ public class UserResponse {
     private String email;
     private String phoneNumber;
     private LocalDate dateOfBirth;
+    private String birthWilaya;
     private String identifier;
+    private String department;
     private LocalDate joinDate;
     private String accountStatus;
     private LocalDate lastActiveDate;
@@ -32,8 +34,6 @@ public class UserResponse {
     public void setUsername(String username) {
         this.username = username;
     }
-
-
 
     public String getRole() {
         return role;
@@ -121,5 +121,21 @@ public class UserResponse {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getBirthWilaya() {
+        return birthWilaya;
+    }
+
+    public void setBirthWilaya(String birthWilaya) {
+        this.birthWilaya = birthWilaya;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 }

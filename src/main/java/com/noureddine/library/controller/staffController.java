@@ -2,103 +2,111 @@ package com.noureddine.library.controller;
 
 import com.noureddine.library.dto.*;
 import com.noureddine.library.entity.Book;
-import com.noureddine.library.entity.BookCopy;
 import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.service.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping(path = "api/staff")
 public class staffController {
     private final BookService bookService;
-    private final BorrowingService borrowingService;
     private final BookCopyService bookCopyService;
-    private final ReportsService reportsService;
+    private final BorrowingService borrowingService;
+    private final InsightsService insightsService;
     private final UserService userService;
 
-    public staffController(BookService bookService, BorrowingService borrowingService, BookCopyService bookCopyService, ReportsService reportsService, UserService userService) {
+    public staffController(BookService bookService, BookCopyService bookCopyService, BorrowingService borrowingService, InsightsService insightsService, UserService userService) {
         this.bookService = bookService;
-        this.borrowingService = borrowingService;
         this.bookCopyService = bookCopyService;
-        this.reportsService = reportsService;
+        this.borrowingService = borrowingService;
+        this.insightsService = insightsService;
         this.userService = userService;
     }
+
     @GetMapping("/insights")
     public ResponseEntity<InsightsResponse> getInsights(){
-        InsightsResponse response = reportsService.getInsights();
+        InsightsResponse response = insightsService.getInsights();
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/{staffId}/info")
+    public ResponseEntity<User> getInfo(@PathVariable Long staffId) throws NotFoundException {
+        User user = userService.getInfo(staffId);
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping("/users")
-    public PagedModel<EntityModel<UserResponse>> getUsers(
+    public PageResponse<UserResponse> getUsers(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            PagedResourcesAssembler<UserResponse> assembler
+            @RequestParam(defaultValue = "asc") String direction
     ) throws NotFoundException {
-        Page<UserResponse> users = userService.getUsers( role, page, size, sortBy, direction);
-        return assembler.toModel(users);
+        if(keyword != null){
+            return userService.searchUsers(keyword, role, page, size, sortBy, direction);
+        }else{
+            return userService.getUsers(role, page, size, sortBy, direction);
+        }
     }
+
     @GetMapping("/accountRequests")
-    public PagedModel<EntityModel<UserResponse>> getAccountRequests(
+    public PageResponse<UserResponse> getAccountRequests(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            PagedResourcesAssembler<UserResponse> assembler
+            @RequestParam(defaultValue = "asc") String direction
     ) throws NotFoundException {
-        Page<UserResponse> accountRequests = userService.getAccountRequests( status, page, size, sortBy, direction);
-        return assembler.toModel(accountRequests);
+        if(keyword != null){
+            return userService.searchAccountRequests( keyword, status, page, size, sortBy, direction);
+        }else{
+            return userService.getAccountRequests( status, page, size, sortBy, direction);
+        }
     }
+
     @GetMapping("/books")
-    public Page<Book> getBooks(
+    public PageResponse<Book> getBooks(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean available,
             @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
     ) throws NotFoundException {
-        return bookService.getBooks(department, page, size, sortBy, direction);
+        if(keyword != null){
+            return bookService.searchBooks(keyword, available, page, size, sortBy, direction);
+        }else{
+            return bookService.getBooks(department, page, size, sortBy, direction);
+        }
     }
 
-    @GetMapping("/bookCopies")
-    public List<CopiesResponse> getBookCopies() throws NotFoundException {
-        return bookCopyService.getCopies();
-    }
     @GetMapping("/borrowings")
-    public PagedModel<EntityModel<Borrowing>> getBorrowings(
+    public PageResponse<Borrowing> getBorrowings(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            PagedResourcesAssembler<Borrowing> assembler
+            @RequestParam(defaultValue = "asc") String direction
     ) throws NotFoundException {
-        Page<Borrowing> borrowings = borrowingService.getAll(status, page, size, sortBy, direction);
-        return assembler.toModel(borrowings);
+        if(keyword != null){
+            return borrowingService.searchBorrowings(keyword, status, page, size, sortBy, direction);
+        }else{
+            return borrowingService.getAll(status, page, size, sortBy, direction);
+        }
     }
-    @GetMapping("/BorrowingsByMemberId")
-    public List<Borrowing> getMemberBorrowings(@RequestParam Long memberId) throws NotFoundException {
-        return borrowingService.getBorrowingsByMemberId(memberId);
-    }
-    @GetMapping("/BorrowingByInventoryNumber")
-    public Borrowing getBorrowing(@RequestParam String inventoryNumber) throws NotFoundException {
-        return borrowingService.getBorrowingByInvNumber(inventoryNumber);
-    }
+
     @GetMapping("/validate/cote")
     public ResponseEntity<Boolean> validateCote(@RequestParam String cote) {
         return ResponseEntity.ok(bookService.isCoteValid(cote));
@@ -116,6 +124,15 @@ public class staffController {
         response.put("message", "Borrowing reviewed successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PatchMapping("/reviewAccount/{userId}")
+    public ResponseEntity<Map<String, String>> reviewAccount(@PathVariable Long userId, @RequestParam String status) throws NotFoundException {
+        userService.reviewAccount(userId, status);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Account reviewed successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping("/book")
     public ResponseEntity<Map<String, String>> addBook(@RequestBody BookRequest request) throws NotFoundException {
         bookService.addBook(request);
@@ -123,54 +140,27 @@ public class staffController {
         response.put("message", "Book added successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-    @PostMapping("/bookCopy")
-    public ResponseEntity<Map<String, String>> addBookCopy(@RequestBody BookCopyRequest request) throws NotFoundException {
-        bookCopyService.addBookCopy(request);
+    @PostMapping("/bookCopy/{bookId}")
+    public ResponseEntity<Map<String, String>> addBookCopy(@PathVariable Long bookId, @RequestParam int numberOfCopies) throws NotFoundException {
+       bookCopyService.addBookCopy(bookId, numberOfCopies);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Book copy added successfully");
+        response.put("message", "Book copies added successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/deleteBook/{id}")
+    @DeleteMapping("/book/{id}")
     public ResponseEntity<Map<String, String>> removeBook(@PathVariable Long id) throws NotFoundException {
         bookService.removeBook(id);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @DeleteMapping("/deleteBookCopy/{inventoryNumber}")
-    public ResponseEntity<Map<String, String>> removeBookCopy(@PathVariable String inventoryNumber) throws NotFoundException {
-        bookCopyService.removeBookCopy(inventoryNumber);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Book copy added successfully");
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-    @PatchMapping("/confirmPickup/{inventoryNumber}")
-    public ResponseEntity<Map<String, String>> confirmBookPickup(@PathVariable String inventoryNumber) throws NotFoundException {
-        borrowingService.confirmBookPickup(inventoryNumber);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Book picked up successfully");
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-    @PatchMapping("/confirmReturn/{inventoryNumber}")
-    public ResponseEntity<Map<String, String>> confirmBookReturn(@PathVariable String inventoryNumber) throws NotFoundException {
-        borrowingService.confirmBookReturn(inventoryNumber);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Book returned successfully");
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
+
     @DeleteMapping("/deleteUser/{userId}")
     public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) throws NotFoundException {
         userService.deleteUser(userId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "user deleted successfully");
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-    @PatchMapping("/reviewAccount/{userId}")
-    public ResponseEntity<Map<String, String>> reviewAccount(@PathVariable Long userId, @RequestParam String status) throws NotFoundException {
-        userService.reviewAccount(userId, status);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Account reviewed successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

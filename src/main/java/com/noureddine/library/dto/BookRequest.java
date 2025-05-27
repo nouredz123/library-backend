@@ -1,65 +1,64 @@
 package com.noureddine.library.dto;
 
 
-import java.util.List;
-
 public class BookRequest {
-    private String Title;
-    private String Author;
-    private String Publisher;
-    private String EditionYear;
+    private String title;
+    private String author;
+    private String publisher;
+    private String editionYear;
     private String isbn;
     private String cote;
     private int numberOfCopies;
     private String coverUrl;
     private String department;
-    private List<String> inventoryNumbers;
+    private String description;
 
     public BookRequest() {
     }
 
-    public BookRequest(String title, String author, String publisher, String editionYear, String isbn, String cote, int numberOfCopies, String coverUrl, String department) {
-        Title = title;
-        Author = author;
-        Publisher = publisher;
-        EditionYear = editionYear;
+    public BookRequest(String title, String author, String publisher, String editionYear, String isbn, String cote, int numberOfCopies, String coverUrl, String department, String description) {
+        this.title = title;
+        this.author = author;
+        this.publisher = publisher;
+        this.editionYear = editionYear;
         this.isbn = isbn;
         this.cote = cote;
         this.numberOfCopies = numberOfCopies;
         this.coverUrl = coverUrl;
         this.department = department;
+        this.description = description;
     }
 
     public String getTitle() {
-        return Title;
+        return title;
     }
 
     public void setTitle(String title) {
-        Title = title;
+        this.title = title;
     }
 
     public String getAuthor() {
-        return Author;
+        return author;
     }
 
     public void setAuthor(String author) {
-        Author = author;
+        this.author = author;
     }
 
     public String getPublisher() {
-        return Publisher;
+        return publisher;
     }
 
     public void setPublisher(String publisher) {
-        Publisher = publisher;
+        this.publisher = publisher;
     }
 
     public String getEditionYear() {
-        return EditionYear;
+        return editionYear;
     }
 
     public void setEditionYear(String editionYear) {
-        EditionYear = editionYear;
+        this.editionYear = editionYear;
     }
 
     public String getCoverUrl() {
@@ -69,15 +68,7 @@ public class BookRequest {
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
     }
-
-    public List<String> getInventoryNumbers() {
-        return inventoryNumbers;
-    }
-
-    public void setInventoryNumbers(List<String> inventoryNumbers) {
-        this.inventoryNumbers = inventoryNumbers;
-    }
-
+    
     public String getDepartment() {
         return department;
     }
@@ -108,5 +99,13 @@ public class BookRequest {
 
     public void setCote(String cote) {
         this.cote = cote;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

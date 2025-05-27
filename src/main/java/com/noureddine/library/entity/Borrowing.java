@@ -13,7 +13,7 @@ public class Borrowing {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "inventory_number", nullable = false)
+    @JoinColumn(name = "inventory_number", nullable = true)
     private BookCopy bookCopy;
     @ManyToOne
     @JoinColumn(name = "member_id", nullable = false)

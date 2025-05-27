@@ -49,15 +49,15 @@ public class DummyDataController {
                     "Author " + i,
                     "Publisher " + i,
                     "20" + (10 + i),
-                    "1545" + i + random.nextInt() % 25 * 10,
-                    "004-15" + i + random.nextInt() % 10,
-                    i + random.nextInt() % 10,
+                    "1545" + i + random.nextInt(),
+                    "004-15" + i + random.nextInt(),
+                    random.nextInt(10),
                     "https://example.com/book" + i + ".jpg",
-                    departments[random.nextInt(departments.length)]
+                    departments[random.nextInt(departments.length)],
+                    "this test description"
             );
             bookService.addBook(request);
         }
-        bookRepository.saveAll(books);
         return ResponseEntity.ok("Database seeded with dummy data!");
     }
 

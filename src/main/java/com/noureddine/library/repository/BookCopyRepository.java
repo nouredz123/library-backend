@@ -12,5 +12,7 @@ import java.util.Optional;
 public interface BookCopyRepository extends JpaRepository<BookCopy, String> {
     List<BookCopy> findByBook(Book book);
     Long countByAvailable(Boolean available);
-    Optional<BookCopy> findFirstByBookIdAndAvailableTrue(Long bookId);
+    List<BookCopy> findByBookAndAvailable(Book book, Boolean available);
+
+    Optional<BookCopy> findFirstByBookAndAvailable(Book book, Boolean available);
 }

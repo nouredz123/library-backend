@@ -1,6 +1,7 @@
 package com.noureddine.library.controller;
 
 import com.noureddine.library.dto.BorrowRequest;
+import com.noureddine.library.dto.PageResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
@@ -33,40 +34,44 @@ public class MemberController {
         this.borrowingService = borrowingService;
         this.userService = userService;
     }
+
     @GetMapping("/books")
-    public Page<Book> getBooks(
+    public PageResponse<Book> getBooks(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean available,
             @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            PagedResourcesAssembler<Book> assembler
+            @RequestParam(defaultValue = "asc") String direction
     ) throws NotFoundException {
-       return bookService.getBooks(department, page, size, sortBy, direction);
+        if(keyword != null){
+            return bookService.searchBooks(keyword, available, page, size, sortBy, direction);
+        }else{
+            return bookService.getBooks(department, page, size, sortBy, direction);
+        }
     }
-    @GetMapping("/books/search")
-    public Page<Book> searchBooks(
-            @RequestParam String keyword,
-            @RequestParam(required = false) Boolean available,
+
+    @GetMapping("/{memberId}/borrowings")
+    public PageResponse<Borrowing> getBorrowings(
+            @PathVariable Long memberId,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "title") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) throws NotFoundException {
-        return bookService.searchBooks(keyword, available, page, size, sortBy, direction);
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(defaultValue = "true") boolean paged
+    ) throws NotFoundException {
+        if(!paged){
+            return borrowingService.getAllBorrowingsByMemberId(memberId);
+        }
+        return borrowingService.getBorrowingsByMemberId(memberId, status, page, size, sortBy, direction);
     }
+
     @GetMapping("/{memberId}/info")
     public ResponseEntity<User> getInfo(@PathVariable Long memberId) throws NotFoundException {
         User user = userService.getInfo(memberId);
         return ResponseEntity.ok(user);
-
-    }
-
-    @GetMapping("/{memberId}/borrowings")
-    public List<Borrowing> getBorrowings(@PathVariable Long memberId) throws NotFoundException, BadRequestException {
-        if (memberId == null) {
-            throw new BadRequestException("memberId is required");
-        }
-        return borrowingService.getBorrowingsByMemberId(memberId);
     }
 
     @PostMapping("/borrow")
@@ -77,19 +82,11 @@ public class MemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/borrowings/{borrowingId}")
+    @DeleteMapping("/borrowing/{borrowingId}")
     public ResponseEntity<Map<String, String>> cancelBorrowing(@PathVariable Long borrowingId) throws NotFoundException {
         borrowingService.removeBorrowingById(borrowingId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Borrowing cancelled successfully");
         return ResponseEntity.ok(response);
     }
-    @DeleteMapping("/borrowings/by-inventory/{inventoryNumber}")
-    public ResponseEntity<Map<String, String>> cancelBorrowingByInventoryNumber(@PathVariable String inventoryNumber) throws NotFoundException {
-        borrowingService.removeBorrowingByInventoryNumber(inventoryNumber);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Borrowing cancelled successfully");
-        return ResponseEntity.ok(response);
-    }
-
 }

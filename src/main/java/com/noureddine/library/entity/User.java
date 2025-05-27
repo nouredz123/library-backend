@@ -21,6 +21,7 @@ public class User {
     private LocalDate joinDate;
     private String accountStatus;
     private LocalDate lastActiveDate;
+    private String department;
     @Lob
     private byte[] studentCard;
     private String studentCardContentType;
@@ -166,5 +167,13 @@ public class User {
 
     public void setNumberOfBorrowings(int numberOfBorrowings) {
         this.numberOfBorrowings = numberOfBorrowings;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 }

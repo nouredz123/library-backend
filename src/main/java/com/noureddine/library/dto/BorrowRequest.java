@@ -5,7 +5,6 @@ public class BorrowRequest {
     private Long bookId;
     private Long memberId;
 
-
     public Long getMemberId() {
         return memberId;
     }
