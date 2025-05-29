@@ -15,8 +15,12 @@ public class SearchUtils {
         while (left <= right) {
             int mid = left + (right - left) / 2;
             IdType midId = idGetter.apply(list.get(mid));
-
-            int comparison = midId.compareTo(targetId);
+            int comparison;
+            if (midId instanceof String && targetId instanceof String) {
+                comparison = Utils.compareStrings((String) midId, (String) targetId);
+            } else {
+                comparison = midId.compareTo(targetId);
+            }
             if (comparison == 0) {
                 return list.get(mid);
             } else if (comparison < 0) {

@@ -15,6 +15,7 @@ public class JwtService {
     private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public String generateToken(User user) {
+        //generate token with user email, role and a secretKey and set it to expire after 10 days
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .claim("role", user.getRole())

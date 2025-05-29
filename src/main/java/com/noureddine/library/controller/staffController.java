@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(path = "api/staff")
-public class staffController {
+public class staffController{
     private final BookService bookService;
     private final BookCopyService bookCopyService;
     private final BorrowingService borrowingService;
@@ -37,7 +37,7 @@ public class staffController {
     }
 
     @GetMapping("/{staffId}/info")
-    public ResponseEntity<User> getInfo(@PathVariable Long staffId) throws NotFoundException {
+    public ResponseEntity<User> getInfo(@PathVariable Long staffId) {
         User user = userService.getInfo(staffId);
         return ResponseEntity.ok(user);
     }
@@ -50,12 +50,8 @@ public class staffController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
-    ) throws NotFoundException {
-        if(keyword != null){
-            return userService.searchUsers(keyword, role, page, size, sortBy, direction);
-        }else{
-            return userService.getUsers(role, page, size, sortBy, direction);
-        }
+    ) {
+        return userService.getUsers(keyword, role, page, size, sortBy, direction);
     }
 
     @GetMapping("/accountRequests")
@@ -66,7 +62,7 @@ public class staffController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
-    ) throws NotFoundException {
+    ) {
         if(keyword != null){
             return userService.searchAccountRequests( keyword, status, page, size, sortBy, direction);
         }else{
@@ -77,18 +73,15 @@ public class staffController {
     @GetMapping("/books")
     public PageResponse<Book> getBooks(
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String searchBy,
             @RequestParam(required = false) Boolean available,
             @RequestParam(required = false) String department,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
-    ) throws NotFoundException {
-        if(keyword != null){
-            return bookService.searchBooks(keyword, available, page, size, sortBy, direction);
-        }else{
-            return bookService.getBooks(department, page, size, sortBy, direction);
-        }
+    ) {
+        return bookService.getBooks(keyword, searchBy, department, available, page, size, sortBy, direction);
     }
 
     @GetMapping("/borrowings")
@@ -99,12 +92,8 @@ public class staffController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction
-    ) throws NotFoundException {
-        if(keyword != null){
-            return borrowingService.searchBorrowings(keyword, status, page, size, sortBy, direction);
-        }else{
-            return borrowingService.getAll(status, page, size, sortBy, direction);
-        }
+    ) {
+        return borrowingService.getAll(keyword, status, page, size, sortBy, direction);
     }
 
     @GetMapping("/validate/cote")
@@ -118,7 +107,7 @@ public class staffController {
     }
 
     @PatchMapping("/reviewBorrowRequest/{borrowingId}")
-    public ResponseEntity<Map<String, String>> reviewBorrowing(@PathVariable Long borrowingId, @RequestParam String status) throws NotFoundException {
+    public ResponseEntity<Map<String, String>> reviewBorrowing(@PathVariable Long borrowingId, @RequestParam String status) {
         borrowingService.reviewBorrowing(borrowingId, status);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Borrowing reviewed successfully");
@@ -126,7 +115,7 @@ public class staffController {
     }
 
     @PatchMapping("/reviewAccount/{userId}")
-    public ResponseEntity<Map<String, String>> reviewAccount(@PathVariable Long userId, @RequestParam String status) throws NotFoundException {
+    public ResponseEntity<Map<String, String>> reviewAccount(@PathVariable Long userId, @RequestParam String status) {
         userService.reviewAccount(userId, status);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Account reviewed successfully");
@@ -134,22 +123,29 @@ public class staffController {
     }
 
     @PostMapping("/book")
-    public ResponseEntity<Map<String, String>> addBook(@RequestBody BookRequest request) throws NotFoundException {
+    public ResponseEntity<Map<String, String>> addBook(@RequestBody BookRequest request) {
         bookService.addBook(request);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book added successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     @PostMapping("/bookCopy/{bookId}")
-    public ResponseEntity<Map<String, String>> addBookCopy(@PathVariable Long bookId, @RequestParam int numberOfCopies) throws NotFoundException {
+    public ResponseEntity<Map<String, String>> addBookCopy(@PathVariable Long bookId, @RequestParam int numberOfCopies) {
        bookCopyService.addBookCopy(bookId, numberOfCopies);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book copies added successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+    @DeleteMapping("/bookCopy/{inventoryNumber}")
+    public ResponseEntity<Map<String, String>> removeBookCopy(@PathVariable String inventoryNumber) {
+        bookCopyService.removeBookCopy(inventoryNumber);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Copy removed successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
     @DeleteMapping("/book/{id}")
-    public ResponseEntity<Map<String, String>> removeBook(@PathVariable Long id) throws NotFoundException {
+    public ResponseEntity<Map<String, String>> removeBook(@PathVariable Long id) {
         bookService.removeBook(id);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Book deleted successfully");
@@ -157,7 +153,7 @@ public class staffController {
     }
 
     @DeleteMapping("/deleteUser/{userId}")
-    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) throws NotFoundException {
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "user deleted successfully");

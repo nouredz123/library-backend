@@ -1,10 +1,12 @@
 package com.noureddine.library.utils;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 public class SortUtils {
-    //overloaded method with default 'false' for descending
+    //overloaded method with default 'false' for descending to get ascending order
     public static <T, K extends Comparable<K>> void heapSort(List<T> list, Function<T, K> keyExtractor) {
         heapSort(list, keyExtractor, false);
     }
@@ -20,12 +22,12 @@ public class SortUtils {
         //one by one moving the max to the end
         for (int i = n - 1; i > 0; i--) {
             //swap the root with the last element (put the max value at the end)
-            swap(list, 0, i);
+            Utils.swap(list, 0, i);
             //call heapify on the heap without the last element
             heapify(list, i, 0, keyExtractor, descending);
         }
     }
-
+    //heapify method to create a min or max heap based on descending parameter
     private static <T, K extends Comparable<K>> void heapify(List<T> list, int heapSize, int rootIndex, Function<T, K> keyExtractor, boolean descending) {
         int extreme = rootIndex;
         int left = 2 * rootIndex + 1;
@@ -38,7 +40,7 @@ public class SortUtils {
             int comparison;
 
             if (leftKey instanceof String && extremeKey instanceof String) {
-                comparison = naturalCompare((String) leftKey, (String) extremeKey);
+                comparison = Utils.compareStrings((String) leftKey, (String) extremeKey);
             } else {
                 comparison = leftKey.compareTo(extremeKey);
             }
@@ -62,7 +64,7 @@ public class SortUtils {
             int comparison;
 
             if (rightKey instanceof String && extremeKey instanceof String) {
-                comparison = naturalCompare((String) rightKey, (String) extremeKey);
+                comparison = Utils.compareStrings((String) rightKey, (String) extremeKey);
             } else {
                 comparison = rightKey.compareTo(extremeKey);
             }
@@ -78,49 +80,55 @@ public class SortUtils {
         }
 
         if (extreme  != rootIndex) {
-            swap(list, rootIndex, extreme );
+            Utils.swap(list, rootIndex, extreme );
             heapify(list, heapSize, extreme , keyExtractor ,descending);
         }
     }
+    //overloaded method with default 'false' for descending to get ascending order
+    public static <T, K extends Comparable<K>> void mergeSort(List<T> list, Function<T, K> keyExtractor) {
+        mergeSort(list, keyExtractor, false);
+    }
+    public static <T, K extends Comparable<K>> void mergeSort(List<T> list, Function<T, K> keyExtractor, boolean descending) {
+        if (list.size() <= 1) return;
 
-    private static <T> void swap(List<T> list, int i, int j) {
-        T temp = list.get(i);
-        list.set(i, list.get(j));
-        list.set(j, temp);
+        int mid = list.size() / 2;
+        List<T> left = new ArrayList<>(list.subList(0, mid));
+        List<T> right = new ArrayList<>(list.subList(mid, list.size()));
+
+        mergeSort(left, keyExtractor, descending);
+        mergeSort(right, keyExtractor, descending);
+
+        merge(list, left, right, keyExtractor, descending);
     }
 
-    private static int naturalCompare(String a, String b) {
-        int i = 0, j = 0;
-        int lenA = a.length(), lenB = b.length();
+    private static <T, K extends Comparable<K>> void merge(
+            List<T> result,
+            List<T> left,
+            List<T> right,
+            Function<T, K> keyExtractor,
+            boolean descending
+    ) {
+        int i = 0, j = 0, k = 0;
 
-        while (i < lenA && j < lenB) {
-            char chA = a.charAt(i);
-            char chB = b.charAt(j);
+        while (i < left.size() && j < right.size()) {
+            K leftKey = keyExtractor.apply(left.get(i));
+            K rightKey = keyExtractor.apply(right.get(j));
 
-            if (Character.isDigit(chA) && Character.isDigit(chB)) {
-                // Extract full number from a
-                int startA = i;
-                while (i < lenA && Character.isDigit(a.charAt(i))) i++;
-                String numStrA = a.substring(startA, i);
-
-                // Extract full number from b
-                int startB = j;
-                while (j < lenB && Character.isDigit(b.charAt(j))) j++;
-                String numStrB = b.substring(startB, j);
-
-                // Compare numbers as integers (handle large numbers too)
-                int cmp = new java.math.BigInteger(numStrA).compareTo(new java.math.BigInteger(numStrB));
-                if (cmp != 0) return cmp;
+            int comparison;
+            if (leftKey instanceof String && rightKey instanceof String) {
+                comparison = Utils.compareStrings((String) leftKey, (String) rightKey);
             } else {
-                // Compare characters (case insensitive like String::compareToIgnoreCase)
-                int cmp = Character.compare(Character.toLowerCase(chA), Character.toLowerCase(chB));
-                if (cmp != 0) return cmp;
-                i++;
-                j++;
+                comparison = leftKey.compareTo(rightKey);
+            }
+
+            if ((descending && comparison > 0) || (!descending && comparison <= 0)) {
+                result.set(k++, left.get(i++));
+            } else {
+                result.set(k++, right.get(j++));
             }
         }
 
-        // One of the strings may have more characters
-        return Integer.compare(lenA - i, lenB - j);
+        while (i < left.size()) result.set(k++, left.get(i++));
+        while (j < right.size()) result.set(k++, right.get(j++));
     }
 }

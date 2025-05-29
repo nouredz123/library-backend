@@ -7,6 +7,7 @@ import com.noureddine.library.dto.BookRequest;
 import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.InvalidArgumentException;
+import com.noureddine.library.exception.InvalidDataException;
 import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.repository.BookCopyRepository;
 import com.noureddine.library.repository.BookRepository;
@@ -14,10 +15,6 @@ import com.noureddine.library.repository.BorrowingRepository;
 import com.noureddine.library.repository.UserRepository;
 import com.noureddine.library.utils.SearchUtils;
 import com.noureddine.library.utils.SortUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -38,15 +35,51 @@ public class BookService {
         this.userRepository = userRepository;
     }
 
-    public PageResponse<Book> getBooks(String department, int page, int size, String sortBy, String direction) throws NotFoundException {
+    public PageResponse<Book> getBooks(String keyword, String searchBy, String department, Boolean available, int page, int size, String sortBy, String direction) {
         List<Book> books;
-        //check if the status is not null nor empty, if it is get only the books with that status else get all the books
-        if (department != null && !department.isEmpty()){
-            books = bookRepository.findByDepartment(department.toUpperCase());
-        }else{
-            books = bookRepository.findAll();
+        //check for the keyword if it is null then get books if it is not null then search for books with that keyword
+        if(keyword == null) {
+            if (department != null && !department.isEmpty()){
+                if (available != null){
+                    books = bookRepository.findByDepartmentAndAvailable(department.toUpperCase(), available);
+                }else{
+                    books = bookRepository.findByDepartment(department.toUpperCase());
+                }
+            }else{
+                if (available != null){
+                    books = bookRepository.findByAvailable(available);
+                }else{
+                    books = bookRepository.findAll();
+                }
+            }
+        }else {
+            if(searchBy == null) {
+                books = bookRepository.searchBooks(keyword, available);
+            }else {
+                switch (searchBy.toLowerCase()){
+                    case "title":
+                        books = bookRepository.searchBooksByTitle(keyword, available);
+                        break;
+                    case "author":
+                        books = bookRepository.searchBooksByAuthor(keyword, available);
+                        break;
+                    case "isbn":
+                        books = bookRepository.searchBooksByIsbn(keyword, available);
+                        break;
+                    case "cote":
+                        books = bookRepository.searchBooksByCote(keyword, available);
+                        break;
+                    case "editionyear":
+                        books = bookRepository.searchBooksByEditionYear(keyword, available);
+                        break;
+                    default:
+                        books = bookRepository.searchBooks(keyword, available);
+                        break;
+                }
+            }
+
         }
-        //check if the there are no books on the database throw an exception
+        //check if the there are no books then throw an exception
         if(books.isEmpty()){
             throw new NotFoundException("There are no books");
         }
@@ -55,7 +88,7 @@ public class BookService {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         //check if the page number is not valid then throw an exception
         if (page < 0 || page >= totalPages) {
-            throw new IllegalArgumentException("Page number out of range.");
+            throw new InvalidArgumentException("Page number out of range.");
         }
         //decide which order to follow based on the direction argument
         boolean descending = direction.equalsIgnoreCase("desc");
@@ -65,10 +98,10 @@ public class BookService {
                 SortUtils.heapSort(books, Book::getId, descending);
                 break;
             case "department":
-                SortUtils.heapSort(books, Book::getDepartment, descending);
+                SortUtils.mergeSort(books, Book::getDepartment, descending);
                 break;
             case "addeddate":
-                SortUtils.heapSort(books, Book::getAddedDate, descending);
+                SortUtils.mergeSort(books, Book::getAddedDate, descending);
                 break;
             case "title":
                 SortUtils.heapSort(books, Book::getTitle, descending);
@@ -77,7 +110,7 @@ public class BookService {
                 SortUtils.heapSort(books, Book::getAuthor, descending);
                 break;
             case "editionyear":
-                SortUtils.heapSort(books, Book::getEditionYear, descending);
+                SortUtils.mergeSort(books, Book::getEditionYear, descending);
                 break;
             case "numberofcopies":
                 SortUtils.heapSort(books, Book::getNumberOfCopies, descending);
@@ -92,10 +125,7 @@ public class BookService {
                 SortUtils.heapSort(books, Book::getPublisher, descending);
                 break;
             default:
-                throw new IllegalArgumentException("Invalid sortBy field: " + sortBy);
-        }
-        for(int i = 0; i <books.size(); i++ ){
-            System.out.println(books.get(i).getTitle());
+                throw new InvalidArgumentException("Invalid sortBy field: " + sortBy);
         }
         //create a pageResponse instance and set its attributes
         PageResponse<Book> booksPage = new PageResponse<>();
@@ -107,101 +137,28 @@ public class BookService {
         booksPage.setLast(page >= totalPages - 1);
         //fill the content based on which page is requested
         List<Book> content = new ArrayList<>();
-        //the index of first element of the page
+        //get index of first element of the requested page
         int start = size * page;
-        //the index of last element of the page
+        //get index of last element of the requested page
         int end = Math.min(start + size, books.size());
+        //fill in the content with based on the requested page
         for (int i = start; i < end; i++) {
             content.add(books.get(i));
         }
         booksPage.setContent(content);
         return booksPage;
     }
-    public PageResponse<Book> searchBooks(String keyword, Boolean available, int page, int size, String sortBy, String direction) throws NotFoundException {
-        List<Book> books;
-        if (available != null){
-           books = bookRepository.searchBooksAndAvailable(keyword, available);
-        }else{
-           books = bookRepository.searchBooks(keyword);
-        }
-        //check if the there are no books on the database then throw an exception
-        if(books.isEmpty()){
-            throw new NotFoundException("There are no books");
-        }
-        //calculate the number of all elements and the total number of pages
-        int totalElements = books.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        //check if the page number is not valid then throw an exception
-        if (page < 0 || page >= totalPages) {
-            throw new IllegalArgumentException("Page number out of range.");
-        }
-        //decide which order to follow based on the direction argument
-        boolean descending = direction.equalsIgnoreCase("desc");
-        //sort the books list by the sortBy argument and throw an exception if the sortBy is not valid
-        switch (sortBy.toLowerCase()) {
-            case "id":
-                SortUtils.heapSort(books, Book::getId, descending);
-                break;
-            case "department":
-                SortUtils.heapSort(books, Book::getDepartment, descending);
-                break;
-            case "addeddate":
-                SortUtils.heapSort(books, Book::getAddedDate, descending);
-                break;
-            case "title":
-                SortUtils.heapSort(books, Book::getTitle, descending);
-                break;
-            case "author":
-                SortUtils.heapSort(books, Book::getAuthor, descending);
-                break;
-            case "editionyear":
-                SortUtils.heapSort(books, Book::getEditionYear, descending);
-                break;
-            case "numberofcopies":
-                SortUtils.heapSort(books, Book::getNumberOfCopies, descending);
-                break;
-            case "isbn":
-                SortUtils.heapSort(books, Book::getIsbn, descending);
-                break;
-            case "cote":
-                SortUtils.heapSort(books, Book::getCote, descending);
-                break;
-            case "publisher":
-                SortUtils.heapSort(books, Book::getPublisher, descending);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid sortBy field: " + sortBy);
-        }
-        //create a pageResponse instance and set its attributes
-        PageResponse<Book> booksPage = new PageResponse<>();
-        booksPage.setTotalElements(totalElements);
-        booksPage.setTotalPages(totalPages);
-        booksPage.setPageSize(size);
-        booksPage.setPageNumber(page);
-        booksPage.setFirst(page == 0);
-        booksPage.setLast(page >= totalPages - 1);
-        //fill the content based on which page is requested
-        List<Book> content = new ArrayList<>();
-        //the index of first element of the page
-        int start = size * page;
-        //the index of last element of the page
-        int end = Math.min(start + size, books.size());
-        for (int i = start; i < end; i++) {
-            content.add(books.get(i));
-        }
-        booksPage.setContent(content);
-        return booksPage;
-    }
-    public void addBook(BookRequest bookRequest) throws NotFoundException {
-        //check for the isbn ti make sure it is valid and does not exist before
+
+    public void addBook(BookRequest bookRequest) {
+        //check for the isbn to make sure it is valid and does not exist before
         if(!isIsbnValid(bookRequest.getIsbn())){
-            throw new NotFoundException("The isbn provided is not valid. Properly book with that isbn already in the database");
+            throw new InvalidDataException("The isbn provided is not valid. Properly book with that isbn already in the database");
         }
-        //check for the isbn ti make sure it is valid and does not exist before
+        //check for the isbn to make sure it is valid and does not exist before
         if(!isCoteValid(bookRequest.getCote())){
-            throw new NotFoundException("The cote provided is not valid. Properly book with that cote already in the database");
+            throw new InvalidDataException("The cote provided is not valid. Properly book with that cote already in the database");
         }
-        //create and initialize a book instance with the infos provided
+        //create and initialize a book instance with the provided informations
         Book book = new Book(
                 bookRequest.getTitle(),
                 bookRequest.getAuthor(),
@@ -219,7 +176,7 @@ public class BookService {
         );
         //save the book at the database
         Book savedBook = bookRepository.save(book);
-        //create book copies based on the number provided and save them on the bookCopy table on the database
+        //create book copies based on the number provided and save them on the database
         for (int i = 1; i <= bookRequest.getNumberOfCopies(); i++){
             BookCopy copy = new BookCopy(
                     bookRequest.getCote() + "." + i,
@@ -229,7 +186,8 @@ public class BookService {
             bookCopyRepository.save(copy);
         }
     }
-    public void removeBook(Long bookId) throws NotFoundException {
+
+    public void removeBook(Long bookId) {
         //get all the books from the database and throw an exception if there are no books found
         List<Book> books = bookRepository.findAll();
         if(books.isEmpty()){
@@ -241,6 +199,7 @@ public class BookService {
         if (book == null){
             throw new NotFoundException("The book not found");
         }
+        //check if there is any borrowings for that book and remove them if they are in pending or return else stop the book deletion
         List<Borrowing> borrowingList = borrowingRepository.findByBook(book);
         List<Borrowing> toDelete = new ArrayList<>();
         if(!borrowingList.isEmpty()){
@@ -248,6 +207,7 @@ public class BookService {
                 switch (borrowing.getStatus().toUpperCase()) {
                     case "PENDING":
                         toDelete.add(borrowing); // Mark for deletion
+                        //update the number of borrowings for the user
                         User member = borrowing.getMember();
                         member.setNumberOfBorrowings(member.getNumberOfBorrowings() - 1);
                         userRepository.save(member);
@@ -259,7 +219,6 @@ public class BookService {
                         throw new InvalidArgumentException("The book has borrowed copies that are not yet returned.");
                 }
             }
-            borrowingRepository.saveAll(borrowingList);
             if (!toDelete.isEmpty()) {
                 borrowingRepository.deleteAll(toDelete);
             }
@@ -275,6 +234,10 @@ public class BookService {
     }
 
     public boolean isCoteValid(String cote){
+        //format must be like 3 digits, dash, 1 to 3 digits (e.g., 004-153)
+        if (!cote.matches("\\d{3}-\\d{1,3}")) {
+            return false;
+        }
         Boolean isBookExists = bookRepository.existsByCote(cote);
         return !isBookExists;
     }

@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 public class UserResponse {
     private Long id;
-    private String username;
     private String role;
     private String fullName;
     private String email;
@@ -25,14 +24,6 @@ public class UserResponse {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getRole() {

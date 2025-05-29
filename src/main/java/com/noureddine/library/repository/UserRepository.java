@@ -36,9 +36,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> searchUsersAndRole(@Param("keyword") String keyword, @Param("role") String role);
     @Query("SELECT u FROM User u " +
             "WHERE (" +
-            "  REPLACE(LOWER(u.fullName), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "  OR REPLACE(LOWER(u.identifier), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "  OR REPLACE(LOWER(u.email), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
+            "REPLACE(LOWER(u.fullName), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
+            "OR REPLACE(LOWER(u.identifier), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
+            "OR REPLACE(LOWER(u.email), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
             ") " +
             "AND (:role IS NULL OR u.role = :role) " +
             "AND (:accountStatus IS NULL OR u.accountStatus = :accountStatus)")

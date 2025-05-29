@@ -41,4 +41,6 @@ public interface BorrowingRepository extends JpaRepository<Borrowing, Long> {
             ") " +
             "AND (:status IS NULL OR b.status = :status)")
     List<Borrowing> searchBorrowingsAndStatus(@Param("keyword") String keyword, @Param("status") String status);
+
+    Borrowing findByBookCopyAndStatusIn(BookCopy copy, List<String> pickedUp);
 }
