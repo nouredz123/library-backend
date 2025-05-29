@@ -234,6 +234,9 @@ public class BookService {
     }
 
     public boolean isCoteValid(String cote){
+        if (cote == null || cote.trim().isEmpty()) {
+            return false; // null or empty string is invalid
+        }
         //format must be like 3 digits, dash, 1 to 3 digits (e.g., 004-153)
         if (!cote.matches("\\d{3}-\\d{1,3}")) {
             return false;
@@ -243,6 +246,14 @@ public class BookService {
     }
 
     public boolean isIsbnValid(String isbn) {
+        if (isbn == null || isbn.trim().isEmpty()) {
+            return false; // null or empty ISBN is not valid
+        }
+        isbn = isbn.trim().replaceAll("-", "");
+        //match ISBN-10 (9 digits + digit or X) OR ISBN-13 (13 digits)
+        if (!isbn.matches("^(\\d{9}[\\dXx]|\\d{13})$")) {
+            return false; // Invalid format
+        }
         Boolean isBookExists = bookRepository.existsByIsbn(isbn);
         return !isBookExists;
     }

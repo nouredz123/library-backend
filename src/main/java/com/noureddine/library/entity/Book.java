@@ -21,6 +21,7 @@ public class Book {
     private Boolean available;
     private String coverUrl;
     private String department;
+    @Column(length = 1000)
     private String description;
     private LocalDate addedDate;
 
