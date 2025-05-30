@@ -30,7 +30,9 @@ public class JwtService {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
-    public boolean isTokenValid(String token, User user) {
-        return extractEmail(token).equals(user.getEmail());
+    public boolean isTokenValid(String token, String email) {
+        if(token == null || email == null)
+            return false;
+        return extractEmail(token).equals(email);
     }
 }

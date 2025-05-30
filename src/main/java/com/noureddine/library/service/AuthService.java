@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Base64;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -47,10 +48,16 @@ public class AuthService {
             throw new InvalidDataException("Identifier is required.");
         }
         //search for the user by its email
-        userRepository.findByEmail(req.getEmail())
-                .ifPresent(user -> {
-                    throw new EmailAlreadyExistsException("A user with this email already exists");
-                });
+        Optional<User> optionalUser = userRepository.findByEmail(req.getEmail());
+        if (optionalUser.isPresent()) {
+            User existingUser = optionalUser.get();
+            if(existingUser.getAccountStatus().equalsIgnoreCase("REJECTED")){
+                userRepository.delete(existingUser);
+            }else{
+                throw new EmailAlreadyExistsException("A user with this email already exists");
+            }
+        }
+
         //create a user instance with the provided informations
         User user = new User();
         user.setFullName(req.getFullName());
@@ -76,13 +83,19 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         //generate the user token
         String jwt = jwtService.generateToken(user);
-        return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), savedUser.getId());
+        return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId(),user.getEmail());
     }
     public AuthResponse registerAdmin(RegisterRequestAdmin adminRequest) {
         //code for staff registration to make sure not anyone can register as a staff
-        String verificationCode = "IAgreeThatIngAreTheBest";
+        String verificationCode = "IngAreTheBest";
         if(!verificationCode.equals(adminRequest.getAdminCode())){
             throw new InvalidArgumentException("Please provide a valid admin code to continue.");
+        }
+        if (adminRequest.getEmail() == null || adminRequest.getEmail().isEmpty()) {
+            throw new InvalidEmailException("Email is required.");
+        }
+        if (adminRequest.getPassword() == null || adminRequest.getPassword().isEmpty()) {
+            throw new InvalidPasswordException("Password is required.");
         }
         //create a RegisterRequest and call the register method
         RegisterRequest request = new RegisterRequest();
@@ -118,12 +131,20 @@ public class AuthService {
         }
         //generate user token
         String jwt = jwtService.generateToken(user);
-        return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId());
+        return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId(),user.getEmail());
     }
 
     public boolean isEmailValid(String email) {
-        Boolean isEmailExists = userRepository.existsByEmail(email);
-        return !isEmailExists;
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User existingUser = optionalUser.get();
+            if(existingUser.getAccountStatus().equalsIgnoreCase("REJECTED")){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        return true;
     }
 }
 

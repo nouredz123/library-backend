@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             //find the user by email from the database
             User user = userRepository.findByEmail(email).orElseThrow();
             //validate the token using JwtService and the user's details
-            if (jwtService.isTokenValid(token, user)) {
+            if (jwtService.isTokenValid(token, user.getEmail())) {
                 String role = user.getRole();
                 //spring security expects roles to start with "ROLE_", so we add it if needed
                 if (!role.startsWith("ROLE_")) {
