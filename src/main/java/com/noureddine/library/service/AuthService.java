@@ -88,7 +88,7 @@ public class AuthService {
         RegisterRequest request = new RegisterRequest();
         request.setFullName(adminRequest.getFullName());
         request.setEmail(adminRequest.getEmail());
-        request.setPassword(adminRequest.getPassword());
+        request.setPassword(passwordEncoder.encode(adminRequest.getPassword()));
         request.setFullName(request.getFullName());
         request.setRole("STAFF");
         return register(request);
