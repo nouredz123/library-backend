@@ -36,46 +36,38 @@ public class SortUtils {
         if (left < heapSize) {
             K leftKey = keyExtractor.apply(list.get(left));
             K extremeKey = keyExtractor.apply(list.get(extreme));
-
             int comparison;
 
             if (leftKey instanceof String && extremeKey instanceof String) {
                 comparison = Utils.compareStrings((String) leftKey, (String) extremeKey);
             } else {
-                comparison = leftKey.compareTo(extremeKey);
+                if (leftKey == null && extremeKey == null) comparison = 0;
+                else if (leftKey == null) comparison = descending ? 1 : -1;
+                else if (extremeKey == null) comparison = descending ? -1 : 1;
+                else comparison = leftKey.compareTo(extremeKey);
             }
 
-            if (descending) {
-                if (comparison < 0) {
-                    extreme = left;
-                }
-            } else {
-                if (comparison > 0) {
-                    extreme = left;
-                }
+            if (descending ? comparison < 0 : comparison > 0) {
+                extreme = left;
             }
         }
-
 
         if (right < heapSize) {
             K rightKey = keyExtractor.apply(list.get(right));
             K extremeKey = keyExtractor.apply(list.get(extreme));
-
             int comparison;
 
             if (rightKey instanceof String && extremeKey instanceof String) {
                 comparison = Utils.compareStrings((String) rightKey, (String) extremeKey);
             } else {
-                comparison = rightKey.compareTo(extremeKey);
+                if (rightKey == null && extremeKey == null) comparison = 0;
+                else if (rightKey == null) comparison = descending ? 1 : -1;
+                else if (extremeKey == null) comparison = descending ? -1 : 1;
+                else comparison = rightKey.compareTo(extremeKey);
             }
-            if (descending) {
-                if (comparison < 0) {
-                    extreme = right;
-                }
-            } else {
-                if (comparison > 0) {
-                    extreme = right;
-                }
+
+            if (descending ? comparison < 0 : comparison > 0) {
+                extreme = right;
             }
         }
 
@@ -118,7 +110,15 @@ public class SortUtils {
             if (leftKey instanceof String && rightKey instanceof String) {
                 comparison = Utils.compareStrings((String) leftKey, (String) rightKey);
             } else {
-                comparison = leftKey.compareTo(rightKey);
+                if (leftKey == null && rightKey == null) {
+                    comparison = 0;
+                } else if (leftKey == null) {
+                    comparison = descending ? 1 : -1;
+                } else if (rightKey == null) {
+                    comparison = descending ? -1 : 1;
+                } else {
+                    comparison = leftKey.compareTo(rightKey);
+                }
             }
 
             if ((descending && comparison > 0) || (!descending && comparison <= 0)) {
