@@ -21,32 +21,40 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             "OR b.isbn LIKE CONCAT('%', :keyword, '%') " +
             "OR b.cote LIKE CONCAT('%', :keyword, '%') " +
             ") " +
-            "AND (:available IS NULL OR b.available = :available)")
-    List<Book> searchBooks(@Param("keyword") String keyword, @Param("available") Boolean available);
+            "AND (:available IS NULL OR b.available = :available) " +
+            "AND (:department IS NULL OR b.department = :department)")
+    List<Book> searchBooks(@Param("keyword") String keyword, @Param("available") Boolean available, @Param("department") String department);
+
     @Query("SELECT b FROM Book b " +
             "WHERE REPLACE(LOWER(b.title), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "AND (:available IS NULL OR b.available = :available)")
-    List<Book> searchBooksByTitle(@Param("keyword") String keyword, @Param("available") Boolean available);
+            "AND (:available IS NULL OR b.available = :available) " +
+            "AND (:department IS NULL OR b.department = :department)")
+    List<Book> searchBooksByTitle(@Param("keyword") String keyword, @Param("available") Boolean available, @Param("department") String department);
 
     @Query("SELECT b FROM Book b " +
             "WHERE REPLACE(LOWER(b.author), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "AND (:available IS NULL OR b.available = :available)")
-    List<Book> searchBooksByAuthor(@Param("keyword") String keyword, @Param("available") Boolean available);
+            "AND (:available IS NULL OR b.available = :available) " +
+            "AND (:department IS NULL OR b.department = :department)")
+    List<Book> searchBooksByAuthor(@Param("keyword") String keyword, @Param("available") Boolean available, @Param("department") String department);
 
     @Query("SELECT b FROM Book b " +
             "WHERE REPLACE(LOWER(b.isbn), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "AND (:available IS NULL OR b.available = :available)")
-    List<Book> searchBooksByIsbn(@Param("keyword") String keyword, @Param("available") Boolean available);
+            "AND (:available IS NULL OR b.available = :available) " +
+            "AND (:department IS NULL OR b.department = :department)")
+    List<Book> searchBooksByIsbn(@Param("keyword") String keyword, @Param("available") Boolean available, @Param("department") String department);
 
     @Query("SELECT b FROM Book b " +
             "WHERE REPLACE(LOWER(b.cote), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "AND (:available IS NULL OR b.available = :available)")
-    List<Book> searchBooksByCote(@Param("keyword") String keyword, @Param("available") Boolean available);
+            "AND (:available IS NULL OR b.available = :available) " +
+            "AND (:department IS NULL OR b.department = :department)")
+    List<Book> searchBooksByCote(@Param("keyword") String keyword, @Param("available") Boolean available, @Param("department") String department);
 
     @Query("SELECT b FROM Book b " +
             "WHERE REPLACE(LOWER(b.editionYear), ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')) " +
-            "AND (:available IS NULL OR b.available = :available)")
-    List<Book> searchBooksByEditionYear(@Param("keyword") String keyword, @Param("available") Boolean available);
+            "AND (:available IS NULL OR b.available = :available) " +
+            "AND (:department IS NULL OR b.department = :department)")
+    List<Book> searchBooksByEditionYear(@Param("keyword") String keyword, @Param("available") Boolean available, @Param("department") String department);
+
 
 
 }

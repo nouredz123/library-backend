@@ -114,9 +114,9 @@ public class staffController{
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("/reviewAccount/{userId}")
+    @PatchMapping("/changeAccountApprovalStatus/{userId}")
     public ResponseEntity<Map<String, String>> reviewAccount(@PathVariable Long userId, @RequestParam String status) {
-        userService.reviewAccount(userId, status);
+        userService.changeAccountApprovalStatus(userId, status);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Account reviewed successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);

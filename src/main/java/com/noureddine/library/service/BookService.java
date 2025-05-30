@@ -53,27 +53,36 @@ public class BookService {
                 }
             }
         }else {
+            if (department != null && !department.isEmpty()){
+                if (available != null){
+                    books = bookRepository.findByDepartmentAndAvailable(department.toUpperCase(), available);
+                }else{
+                    books = bookRepository.findByDepartment(department.toUpperCase());
+                }
+            }else{
+
+            }
             if(searchBy == null) {
-                books = bookRepository.searchBooks(keyword, available);
+                books = bookRepository.searchBooks(keyword, available, department);
             }else {
                 switch (searchBy.toLowerCase()){
                     case "title":
-                        books = bookRepository.searchBooksByTitle(keyword, available);
+                        books = bookRepository.searchBooksByTitle(keyword, available, department);
                         break;
                     case "author":
-                        books = bookRepository.searchBooksByAuthor(keyword, available);
+                        books = bookRepository.searchBooksByAuthor(keyword, available, department);
                         break;
                     case "isbn":
-                        books = bookRepository.searchBooksByIsbn(keyword, available);
+                        books = bookRepository.searchBooksByIsbn(keyword, available, department);
                         break;
                     case "cote":
-                        books = bookRepository.searchBooksByCote(keyword, available);
+                        books = bookRepository.searchBooksByCote(keyword, available, department);
                         break;
                     case "editionyear":
-                        books = bookRepository.searchBooksByEditionYear(keyword, available);
+                        books = bookRepository.searchBooksByEditionYear(keyword, available, department);
                         break;
                     default:
-                        books = bookRepository.searchBooks(keyword, available);
+                        books = bookRepository.searchBooks(keyword, available, department);
                         break;
                 }
             }

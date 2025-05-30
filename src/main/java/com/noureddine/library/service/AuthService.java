@@ -80,7 +80,7 @@ public class AuthService {
     }
     public AuthResponse registerAdmin(RegisterRequestAdmin adminRequest) {
         //code for staff registration to make sure not anyone can register as a staff
-        String verificationCode = "adminVerificationCode";
+        String verificationCode = "IAgreeThatIngAreTheBest";
         if(!verificationCode.equals(adminRequest.getAdminCode())){
             throw new InvalidArgumentException("Please provide a valid admin code to continue.");
         }

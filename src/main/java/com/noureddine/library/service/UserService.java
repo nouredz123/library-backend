@@ -347,7 +347,7 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    public void reviewAccount(Long userId, String status)  {
+    public void changeAccountApprovalStatus(Long userId, String status)  {
         //make sure the status is not empty or null
         if (status == null || status.isEmpty() ||
                 (!status.equalsIgnoreCase("APPROVED") && !status.equalsIgnoreCase("REJECTED"))) {

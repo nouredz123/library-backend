@@ -5,7 +5,6 @@ import com.noureddine.library.dto.PageResponse;
 import com.noureddine.library.entity.Book;
 import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
-import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.service.BookService;
 import com.noureddine.library.service.BorrowingService;
 import com.noureddine.library.service.UserService;
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
