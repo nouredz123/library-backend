@@ -97,14 +97,27 @@ public class AuthService {
         if (adminRequest.getPassword() == null || adminRequest.getPassword().isEmpty()) {
             throw new InvalidPasswordException("Password is required.");
         }
+        Optional<User> optionalUser = userRepository.findByEmail(adminRequest.getEmail());
+        if (optionalUser.isPresent()) {
+            User existingUser = optionalUser.get();
+            if(existingUser.getAccountStatus().equalsIgnoreCase("REJECTED")){
+                userRepository.delete(existingUser);
+            }else{
+                throw new EmailAlreadyExistsException("A user with this email already exists");
+            }
+        }
         //create a RegisterRequest and call the register method
-        RegisterRequest request = new RegisterRequest();
-        request.setFullName(adminRequest.getFullName());
-        request.setEmail(adminRequest.getEmail());
-        request.setPassword(passwordEncoder.encode(adminRequest.getPassword()));
-        request.setFullName(request.getFullName());
-        request.setRole("STAFF");
-        return register(request);
+        User user = new User();
+        user.setFullName(adminRequest.getFullName());
+        user.setEmail(adminRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(adminRequest.getPassword()));
+        user.setFullName(user.getFullName());
+        user.setRole("STAFF");
+        //save the new user in the database
+        User savedUser = userRepository.save(user);
+        //generate the user token
+        String jwt = jwtService.generateToken(user);
+        return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId(),user.getEmail());
     }
 
     public AuthResponse authenticate(AuthRequest req) {
@@ -120,6 +133,7 @@ public class AuthService {
                 .orElseThrow(() -> new InvalidEmailException("No account found with that email address."));
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword()))
             throw new BadCredentialsException("Incorrect username or password. Please try again.");
+
         //get the last active date for the user
         LocalDate lastActiveDate = user.getLastActiveDate() != null
                 ? user.getLastActiveDate()
