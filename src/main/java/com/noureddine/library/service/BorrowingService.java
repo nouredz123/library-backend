@@ -83,7 +83,7 @@ public class BorrowingService {
         List<Borrowing> picked_upBorrowings = borrowingRepository.findByStatus("PICKED_UP");
         //for each picked_up borrowing if the return date is in the past mark it as overdue
         for (Borrowing borrowing : picked_upBorrowings) {
-            if (borrowing.getPickUpDate() != null && borrowing.getPickUpDate().isBefore(LocalDate.now())) {
+            if (borrowing.getReturnDate() != null && borrowing.getReturnDate().isBefore(LocalDate.now())) {
                 borrowing.setStatus("OVERDUE");
                 borrowingRepository.save(borrowing);
             }

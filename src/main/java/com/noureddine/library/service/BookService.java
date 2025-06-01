@@ -53,6 +53,7 @@ public class BookService {
                 }
             }
         }else {
+            /// /forget to remove (will not affect the results)
             if (department != null && !department.isEmpty()){
                 if (available != null){
                     books = bookRepository.findByDepartmentAndAvailable(department.toUpperCase(), available);
@@ -62,6 +63,7 @@ public class BookService {
             }else{
 
             }
+            ///////////////////////
             if(searchBy == null) {
                 books = bookRepository.searchBooks(keyword, available, department);
             }else {

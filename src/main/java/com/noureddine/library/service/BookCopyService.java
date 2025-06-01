@@ -60,6 +60,9 @@ public class BookCopyService {
         //update the number of copies and available copies for the book
         book.setNumberOfCopies(numOfCop + numberOfCopies);
         book.setAvailableCopies(book.getAvailableCopies() + numberOfCopies);
+        if(!book.isAvailable()){
+            book.setAvailable(true);
+        }
         bookRepository.save(book);
     }
 

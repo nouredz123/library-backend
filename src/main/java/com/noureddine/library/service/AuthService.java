@@ -44,8 +44,11 @@ public class AuthService {
         if (req.getRole() == null || req.getRole().isEmpty()) {
             throw new InvalidRoleException("Role is required.");
         }
-        if (req.getIdentifier() == null || req.getIdentifier().isEmpty()) {
-            throw new InvalidDataException("Identifier is required.");
+        if (req.getIdentifier() == null || req.getIdentifier().length() != 22 || !req.getIdentifier().startsWith("UN")) {
+            throw new InvalidDataException("Identifier is required.And must start with 'UN' and be exactly 22 characters.");
+        }
+        if (req.getDepartment() == null || req.getDepartment().isEmpty()) {
+            throw new InvalidDataException("Department is required.");
         }
         //search for the user by its email
         Optional<User> optionalUser = userRepository.findByEmail(req.getEmail());
@@ -67,8 +70,9 @@ public class AuthService {
         user.setJoinDate(LocalDate.now());
         user.setBirthWilaya(req.getBirthWilaya());
         user.setDateOfBirth(req.getDateOfBirth());
+        user.setDepartment(req.getDepartment());
         user.setRole("ROLE_" + req.getRole().toUpperCase());
-        user.setAccountStatus(req.getRole().equalsIgnoreCase("MEMBER") ? "PENDING" : "APPROVED" );
+        user.setAccountStatus("PENDING");
         user.setLastActiveDate(LocalDate.now());
         //make sure the card is not null and is a valid base64 format
         if (req.getCardBase64() != null && !req.getCardBase64().isEmpty()) {
@@ -99,12 +103,7 @@ public class AuthService {
         }
         Optional<User> optionalUser = userRepository.findByEmail(adminRequest.getEmail());
         if (optionalUser.isPresent()) {
-            User existingUser = optionalUser.get();
-            if(existingUser.getAccountStatus().equalsIgnoreCase("REJECTED")){
-                userRepository.delete(existingUser);
-            }else{
-                throw new EmailAlreadyExistsException("A user with this email already exists");
-            }
+            throw new EmailAlreadyExistsException("A user with this email already exists");
         }
         //create a RegisterRequest and call the register method
         User user = new User();
@@ -113,6 +112,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(adminRequest.getPassword()));
         user.setFullName(user.getFullName());
         user.setRole("STAFF");
+        user.setJoinDate(LocalDate.now());
         //save the new user in the database
         User savedUser = userRepository.save(user);
         //generate the user token
@@ -143,6 +143,7 @@ public class AuthService {
             user.setLastActiveDate(LocalDate.now());
             userRepository.save(user);
         }
+
         //generate user token
         String jwt = jwtService.generateToken(user);
         return new AuthResponse(jwt, user.getRole().replace("ROLE_", ""), user.getId(),user.getEmail());
@@ -152,11 +153,7 @@ public class AuthService {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isPresent()) {
             User existingUser = optionalUser.get();
-            if(existingUser.getAccountStatus().equalsIgnoreCase("REJECTED")){
-                return true;
-            }else{
-                return false;
-            }
+            return existingUser.getAccountStatus().equalsIgnoreCase("REJECTED");
         }
         return true;
     }

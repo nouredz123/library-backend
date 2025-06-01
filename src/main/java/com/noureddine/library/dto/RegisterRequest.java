@@ -4,11 +4,11 @@ import java.time.LocalDate;
 
 public class RegisterRequest {
     private String fullName;
-    private String username;
     private String email;
     private String password;
     private String identifier;
     private String role;
+    private String department;
     private LocalDate dateOfBirth;
     private String birthWilaya;
     private String cardBase64;
@@ -25,13 +25,6 @@ public class RegisterRequest {
         this.fullName = fullName;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     public String getEmail() {
         return email;
@@ -95,5 +88,13 @@ public class RegisterRequest {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
     }
 }

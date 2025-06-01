@@ -3,6 +3,7 @@ package com.noureddine.library.service;
 import com.noureddine.library.dto.PageResponse;
 import com.noureddine.library.dto.UserResponse;
 import com.noureddine.library.entity.Book;
+import com.noureddine.library.entity.Borrowing;
 import com.noureddine.library.entity.User;
 import com.noureddine.library.exception.NotFoundException;
 import com.noureddine.library.repository.BorrowingRepository;
@@ -306,20 +307,7 @@ public class UserService {
     }
 
     public User getInfo(Long userId)  {
-        //get all users from database
-        List<User> allUsers = userRepository.findAll();
-        //check if the users list is empty, if it is throw an exception
-        if(allUsers.isEmpty()){
-            throw new NotFoundException("There are no users.");
-        }
-        //sort the list and then search for the member with the provided id
-        SortUtils.heapSort(allUsers, User::getId);
-        User user = SearchUtils.binarySearch(allUsers, userId, User::getId);
-        //if the member not found throw an exception
-        if(user == null){
-            throw new NotFoundException("The user not found");
-        }
-        return user;
+        return userRepository.findById(userId).orElseThrow(()->new NotFoundException("There are no users."));
     }
 
     public void deleteUser(Long userId)  {
@@ -342,6 +330,15 @@ public class UserService {
         //check if the user has unreturned borrowings, if it is throw an exception
         if(!borrowingRepository.findByMemberAndStatus(user, "PICKED_UP").isEmpty()){
            throw new NotFoundException("The user has not returned borrowings");
+        }
+        if(!borrowingRepository.findByMemberAndStatus(user, "OVERDUE").isEmpty()){
+            throw new NotFoundException("The user has not returned borrowings");
+        }
+        List<Borrowing> notPickedUpBorrowings = borrowingRepository.findByMemberAndStatusIn(user, List.of("PENDING", "RETURNED"));
+        if(!notPickedUpBorrowings.isEmpty()){
+            for (Borrowing borrowing: notPickedUpBorrowings){
+                borrowingRepository.delete(borrowing);
+            }
         }
         //delete the user
         userRepository.deleteById(userId);
